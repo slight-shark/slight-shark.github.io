@@ -70,7 +70,7 @@ jobs:
       - name: Clone from CTF-Writeups
         uses: actions/checkout@v4
         with: 
-          name: slight-shark/CTF-Writeups
+          repository: slight-shark/CTF-Writeups
           path: ./src/pages/Writeups
         
       - name: Build with Astro
@@ -83,9 +83,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ env.BUILD_PATH }}/dist
-      
-      - name: Listing everything
-        run: "ls --recursive"
 
   deploy:
     environment:
