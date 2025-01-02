@@ -12,6 +12,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # Receive triggers from Writeup repo
+  repository_dispatch:
+    types: [trigger-workflow]
+
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
@@ -72,6 +76,7 @@ jobs:
         with: 
           repository: slight-shark/CTF-Writeups
           path: ./src/pages/Writeups
+          ref: ${{ github.event_name == 'push' && "" || github.event.client_payload.sha }}
         
       - name: Build with Astro
         run: |
