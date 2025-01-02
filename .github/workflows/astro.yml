@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with: 
           name: slight-shark/CTF-Writeups
-          path: ./src/pages
+          path: ./src/pages/Writeups
         
       - name: Build with Astro
         run: |
