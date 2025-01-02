@@ -76,7 +76,7 @@ jobs:
         with: 
           repository: slight-shark/CTF-Writeups
           path: ./src/pages/Writeups
-          ref: ${{ github.event_name == 'push' && "" || github.event.client_payload.sha }}
+          ref: ${{ github.event_name == 'push' && '' || github.event.client_payload.sha }}
         
       - name: Build with Astro
         run: |
