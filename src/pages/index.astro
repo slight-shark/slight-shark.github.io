@@ -1,11 +1,25 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import slightSmileFace from '../assets/slight_smile_face.svg';
 ---
 
 <Layout>
-	<Welcome />
+  <div>
+    <div class='size-[80vw] rounded-full bg-app-yellow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <img
+        src={slightSmileFace.src}
+        alt='slight smile'
+        class='size-48 absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2'
+      />
+    </div>
+    <div class='absolute top-1/3 w-full flex flex-col items-center text-black'>
+      <h1 class='mb-4'>slight_smile</h1>
+      <h2 class='mb-16'>ctf team based in singapore</h2>
+      <div class='flex gap-x-10'>
+        <button class='h-[4.5rem] px-8 bg-black rounded-[1.75rem] text-app-yellow text-2xl'>Members</button>
+        <button class='h-[4.5rem] px-8 bg-black rounded-[1.75rem] text-app-yellow text-2xl'>CTF writeups</button>
+        <button class='h-[4.5rem] px-8 bg-black rounded-[1.75rem] text-app-yellow text-2xl'>Blog</button>
+      </div>
+    </div>
+  </div>
 </Layout>

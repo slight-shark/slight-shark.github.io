@@ -1,0 +1,23 @@
+* {
+  font-family: 'Itim', cursive;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  color: #ffffff;
+  background-color: #06070a;
+}
+
+h1 {
+  font-family: 'Silkscreen', sans-serif;
+  font-size: 4rem;
+}
+
+h2 {
+  font-family: 'Silkscreen', sans-serif;
+  font-size: 1.5rem;
+  opacity: 0.4;
+}
