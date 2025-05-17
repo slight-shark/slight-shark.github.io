@@ -1,0 +1,22 @@
+---
+import Layout from "./Layout.astro";
+import slightSmileFace from "../assets/slight_smile_face.svg";
+---
+
+<Layout>
+  <div class="flex items-center justify-between py-3 px-6 text-lg">
+    <div class="flex items-center justify-center gap-5 text-app-yellow">
+      <img
+        src={slightSmileFace.src}
+        alt="menu"
+        class="h-[2em] aspect-square rounded-full bg-app-yellow"
+      />
+      <span>
+        menu
+      </span>
+    </div>
+    <i class="fa-regular fa-magnifying-glass bg-app-purple rounded-full aspect-square p-[0.75em]">
+    </i>
+  </div>
+  <slot />
+</Layout>

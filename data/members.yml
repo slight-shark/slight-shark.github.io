@@ -1,0 +1,19 @@
+- name: scuffed
+  categories:
+    - rev
+    - pwn
+
+- name: samuzora
+  categories:
+    - pwn
+    - web
+
+- name: mkofdwu
+  categories:
+    - web
+    - misc
+
+- name: halogen
+  categories:
+    - web
+    - crypto
