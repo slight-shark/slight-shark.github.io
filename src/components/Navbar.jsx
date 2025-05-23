@@ -2,6 +2,7 @@ import { useState } from "react";
 import slightSmileFace from "../assets/slight_smile_face.svg";
 
 export default function Navbar() {
+  const url = window.location.pathname;
   const [menuShown, showMenu] = useState(false);
 
   return (
@@ -17,17 +18,26 @@ export default function Navbar() {
             menu
           </span>
         </div>
-        <div className={(menuShown ? "" : "-translate-x-full") + " " + "box-border w-[40vw] absolute top-0 left-0 h-full rounded-r-full bg-app-yellow transition-all flex px-6 items-center justify-start gap-8 text-black"}>
+        <div className={(menuShown ? "" : "-translate-x-full") + " " + "box-border w-[100vw] lg:w-[40vw] absolute top-0 left-0 h-full rounded-r-full bg-app-yellow transition-all flex px-6 items-center justify-start gap-8 text-black z-10"}>
           <img
             src={slightSmileFace.src}
             alt="menu"
-            className="h-[3rem] aspect-square rounded-full bg-app-yellow"
+            className="hidden sm:block h-[3rem] aspect-square rounded-full bg-app-yellow"
           />
           <div>
-            hello
+            <a className={"navbar-link" + (url === "/members" ? " active" : "")} href="/members">
+              members
+            </a>
           </div>
           <div>
-            hello
+            <a className={"navbar-link" + (url === "/writeups" ? " active" : "")} href="/writeups">
+              writeups
+            </a>
+          </div>
+          <div>
+            <a className={"navbar-link" + (url === "/blog" ? " active" : "")} href="/blog">
+              blog
+            </a>
           </div>
           <div className="ml-auto cursor-pointer">
             <i className="fa-solid fa-x" onClick={() => showMenu(false)} />

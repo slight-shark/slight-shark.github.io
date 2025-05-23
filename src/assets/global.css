@@ -21,3 +21,19 @@ h2 {
   font-size: 1.5rem;
   opacity: 0.4;
 }
+
+.navbar-link {
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-link::after {
+    content: "";
+    border-bottom: 3px solid black;
+    width: 0;
+    transition: width 0.1s ease-out;
+}
+
+.navbar-link:hover::after, .active::after {
+    width: 100%;
+}
