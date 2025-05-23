@@ -9,6 +9,9 @@ export default {
         "app-purple": "#7231FF",
         "app-gray": "#1C1C1C",
       },
+      screens: {
+        "xs": "480px",
+      }
     },
   },
   plugins: [],
