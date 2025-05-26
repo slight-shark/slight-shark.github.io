@@ -1,0 +1,45 @@
+---
+import { getCollection } from "astro:content"
+import NavbarLayout from "@/layouts/NavbarLayout.astro"
+
+export async function getStaticPaths() {
+  let writeups = await getCollection("writeups")
+
+  return writeups.map(w => ({
+    params: {
+      slug: w.id
+    }
+  }))
+}
+
+let writeups = await getCollection("writeups")
+writeups.sort((a, b) => (b.data.date.getTime() - a.data.date.getTime()))
+
+console.log(writeups)
+---
+
+<NavbarLayout>
+  <div class="flex flex-col items-center">
+    <h1 class="mx-4 text-center">CTF WRITEUPS</h1>
+    <div class="w-full xl:w-[1280px] px-4 md:px-24 lg:px-48">
+      <div class="mt-10 mx-6 flex flex-col items-center justify-start gap-5">
+        {writeups.map(w => (
+        <a href={`/writeups/${w.id}`} class="mx-16 px-12 py-8 w-full flex justify-between items-center rounded-2xl hover:bg-app-gray hidden-parent">
+            <div>
+              <div class="text-[2rem] font-bold text-app-yellow">
+                {w.data.title}
+              </div>
+              <div class="text-lg text-white">
+                by {w.data.authors.join(", ")}
+              </div>
+              <div class="text-lg text-white opacity-60">
+                {w.data.date.toLocaleDateString()}
+              </div>
+            </div>
+            <i class="fa-regular fa-arrow-right bg-app-purple rounded-2xl aspect-square p-[1rem] hidden-child" />
+        </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</NavbarLayout>
