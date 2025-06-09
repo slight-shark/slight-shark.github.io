@@ -14,7 +14,7 @@ export default function Navbar() {
   // TODO: implement search logic
 
   return (
-    <div className="h-[5rem] flex items-center justify-between text-lg overflow-x-hidden">
+    <div className="h-[5rem] sticky w-full top-0 flex items-center justify-between text-lg overflow-x-hidden bg-black z-50">
       <div className="h-full relative flex justify-start items-center">
         <div className="ml-6 flex items-center justify-center gap-5 text-app-yellow">
           <img
@@ -57,7 +57,7 @@ export default function Navbar() {
         </i>
         <div className={(searchShown ? "" : "translate-x-full") + " " + "box-border w-[100vw] lg:w-[40vw] absolute top-0 right-0 h-full rounded-l-full bg-app-purple transition-all flex px-6 items-center justify-start gap-8 text-black z-10"}>
           <div className="mr-auto cursor-pointer">
-            <i className="fa-solid fa-x" onClick={() => showSearch(false)} />
+            <i className="fa-solid fa-x text-white" onClick={() => showSearch(false)} />
           </div>
           <input className="flex-grow rounded-lg bg-app-purple text-white outline-none" placeholder="Search" value={searchValue} onChange={updateSearch}>
           </input>
