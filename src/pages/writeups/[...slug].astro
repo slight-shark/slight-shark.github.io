@@ -1,0 +1,46 @@
+---
+import { getCollection, getEntry, render } from "astro:content"
+
+import NavbarLayout from "@/layouts/NavbarLayout.astro"
+import Toc from "@/components/Toc"
+
+export async function getStaticPaths() {
+  let writeups = await getCollection("writeups")
+
+  return writeups.map(w => ({
+    params: {
+      slug: w.id
+    }
+  }))
+}
+
+const { slug } = Astro.params
+
+const post = await getEntry("writeups", slug)
+
+if (!post) return Astro.rewrite("/404")
+
+const { Content, headings } = await render(post)
+---
+
+<NavbarLayout>
+  <div class="flex gap-12 w-full xl:w-[1280px] mx-8 xl:mx-auto px-4 md:px-24 lg:px-48 pb-8 md:pb-24">
+    <div class="flex-1">
+      <div class="mb-6 pb-6 border-b border-white border-dotted w-auto">
+        <h1>{post.data.title}</h1>
+        <div class="mt-6 text-lg text-white">
+          by {post.data.authors.join(", ")}
+        </div>
+        <div class="mt-2 text-lg text-white opacity-60">
+          {post.data.date.toLocaleDateString()}
+        </div>
+      </div>
+      <div class="markdown-body">
+        <Content />
+      </div>
+    </div>
+    <div class="mt-[4rem]">
+      <Toc client:load headings={headings.filter(h => h.depth <= 1)} />
+    </div>
+  </div>
+</NavbarLayout>

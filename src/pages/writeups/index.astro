@@ -2,20 +2,8 @@
 import { getCollection } from "astro:content"
 import NavbarLayout from "@/layouts/NavbarLayout.astro"
 
-export async function getStaticPaths() {
-  let writeups = await getCollection("writeups")
-
-  return writeups.map(w => ({
-    params: {
-      slug: w.id
-    }
-  }))
-}
-
 let writeups = await getCollection("writeups")
 writeups.sort((a, b) => (b.data.date.getTime() - a.data.date.getTime()))
-
-console.log(writeups)
 ---
 
 <NavbarLayout>
