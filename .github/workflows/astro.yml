@@ -71,13 +71,6 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
         working-directory: ${{ env.BUILD_PATH }}
 
-      - name: Clone from CTF-Writeups
-        uses: actions/checkout@v4
-        with: 
-          repository: slight-shark/CTF-Writeups
-          path: ./src/content/writeups
-          ref: ${{ github.event_name == 'push' && '' || github.event.client_payload.sha }}
-        
       - name: Build with Astro
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
