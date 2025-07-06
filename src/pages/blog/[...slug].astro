@@ -5,9 +5,9 @@ import NavbarLayout from "@/layouts/NavbarLayout.astro"
 import Toc from "@/components/Toc"
 
 export async function getStaticPaths() {
-  let writeups = await getCollection("writeups")
+  let blog = await getCollection("blog")
 
-  return writeups.map(w => ({
+  return blog.map(w => ({
     params: {
       slug: w.id
     }
@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params
 
-const post = await getEntry("writeups", slug)
+const post = await getEntry("blog", slug)
 
 if (!post) return Astro.rewrite("/404")
 

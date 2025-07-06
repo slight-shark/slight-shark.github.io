@@ -25,6 +25,11 @@ h2 {
 .navbar-link {
     display: flex;
     flex-direction: column;
+    color: black;
+}
+
+.navbar-link:hover {
+    text-decoration: none;
 }
 
 .navbar-link::after {
@@ -46,6 +51,134 @@ h2 {
     visibility: visible;
 }
 
-.markdown-content {
+.markdown-body {
     z-index: 1;
+    font-size: 1.125rem;
+
+    p {
+        margin: 0.5rem 0rem;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Silkscreen', sans-serif;
+      font-size: 3rem;
+      opacity: 1;
+    }
+
+    h1 {
+        font-size: 3rem;
+    }
+
+    h2 {
+      font-size: 2.0rem;
+    }
+
+    h3 {
+      font-size: 1.8rem;
+    }
+
+    h4 {
+      font-size: 1.6rem;
+    }
+
+    h5 {
+      font-size: 1.4rem;
+    }
+
+    h6 {
+      font-size: 1.3rem;
+    }
+
+    a {
+        @apply text-app-yellow
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+
+    /* https://css-shape.com/wavy-line/ */
+    hr {
+        --s: 3px; /* size of the wave */
+        --b: 2px; /* thickness of the line */
+        --m: 0.4; /* curvature of the wave [0 2] */
+
+        background: white;
+        opacity: 0.4;
+        --R: calc(var(--s)*sqrt(var(--m)*var(--m) + 1) + var(--b)/2);
+        height: calc(2*var(--R));
+        width: 100%;
+        --_g: #0000 calc(99% - var(--b)), #000 calc(101% - var(--b)) 99%, #0000 101%;
+        mask:
+            radial-gradient(var(--R) at left 50% bottom calc(-1*var(--m)*var(--s)), var(--_g)) 
+             calc(50% - 2*var(--s)) calc(50% - var(--s)/2 - var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x,
+            radial-gradient(var(--R) at left 50% top calc(-1*var(--m)*var(--s)),var(--_g)) 
+             50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x;
+
+        margin: 1rem 0;
+    }
+
+    figure {
+        width: 100%;
+        margin: 8px 0px;
+    }
+
+    figure img {
+        width: 70%;
+        margin: auto;
+        padding: 1rem 0;
+    }
+
+    figure figcaption {
+        font-size: 0.9rem;
+        font-style: italic;
+        margin: auto;
+        text-align: center;
+    }
+
+    pre {
+        overflow-x: auto;
+        margin: 0px 12px;
+    }
+
+    pre {
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+
+    code, pre span {
+        font-family: 'Cascadia Code', monospace;
+        font-size: 0.9rem;
+    }
+
+    code {
+        padding: 2px 4px;
+        border-radius: 1px;
+    }
+
+    span[data-rehype-pretty-code-figure] {
+        overflow-wrap: break-word;
+    }
+
+    /* TODO: style tables */
+}
+
+/* https://css-shape.com/wavy-line/ */
+.wavy-line {
+    --s: 3px; /* size of the wave */
+    --b: 2px; /* thickness of the line */
+    --m: 0.4; /* curvature of the wave [0 2] */
+
+    background: white;
+    opacity: 0.4;
+    --R: calc(var(--s)*sqrt(var(--m)*var(--m) + 1) + var(--b)/2);
+    height: calc(2*var(--R));
+    width: 100%;
+    --_g: #0000 calc(99% - var(--b)), #000 calc(101% - var(--b)) 99%, #0000 101%;
+    mask:
+        radial-gradient(var(--R) at left 50% bottom calc(-1*var(--m)*var(--s)), var(--_g)) 
+         calc(50% - 2*var(--s)) calc(50% - var(--s)/2 - var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x,
+        radial-gradient(var(--R) at left 50% top calc(-1*var(--m)*var(--s)),var(--_g)) 
+         50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x;
 }

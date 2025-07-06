@@ -17,21 +17,25 @@ export default function Navbar() {
     <div className="h-[5rem] sticky w-full top-0 flex items-center justify-between text-lg overflow-x-hidden bg-black z-50">
       <div className="h-full relative flex justify-start items-center">
         <div className="ml-6 flex items-center justify-center gap-5 text-app-yellow">
-          <img
-            src={slightSmileFace.src}
-            alt="menu"
-            className="h-[3rem] aspect-square rounded-full bg-app-yellow"
-          />
+          <a href="/">
+            <img
+              src={slightSmileFace.src}
+              alt="menu"
+              className="h-[3rem] aspect-square rounded-full bg-app-yellow"
+            />
+          </a>
           <span className="cursor-pointer" onClick={() => showMenu(true)}>
             menu
           </span>
         </div>
         <div className={(menuShown ? "" : "-translate-x-full") + " " + "box-border w-[100vw] lg:w-[40vw] absolute top-0 left-0 h-full rounded-r-full bg-app-yellow transition-all flex px-6 items-center justify-start gap-8 text-black z-10"}>
-          <img
-            src={slightSmileFace.src}
-            alt="menu"
-            className="hidden sm:block h-[3rem] aspect-square rounded-full bg-app-yellow"
-          />
+          <a href="/">
+            <img
+              src={slightSmileFace.src}
+              alt="menu"
+              className="hidden sm:block h-[3rem] aspect-square rounded-full bg-app-yellow"
+            />
+          </a>
           <div>
             <a className={"navbar-link" + (url === "/members" ? " active" : "")} href="/members">
               members
