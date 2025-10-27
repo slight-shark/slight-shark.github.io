@@ -11,6 +11,9 @@ import { rehypePrettyCode } from "rehype-pretty-code"
 import remarkEmoji from "remark-emoji"
 import rehypeFigure from "@microflash/rehype-figure"
 
+import remarkMath from 'remark-math';
+import rehypeMathjax from 'rehype-mathjax';
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [react(), tailwind(), mdx()],
@@ -24,11 +27,12 @@ export default defineConfig({
     },
 
     remarkPlugins: [
-      remarkEmoji
+      remarkEmoji, remarkMath
     ],
 
     rehypePlugins: [
       sectionize,
+      rehypeMathjax,
       rehypeFigure,
       [
         rehypePrettyCode,

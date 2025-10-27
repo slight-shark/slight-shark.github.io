@@ -3,7 +3,7 @@ title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
     - samuzora
-visible: false # change this to true to view locally; change to false before pushing
+visible: true # change this to true to view locally; change to false before pushing
 ---
 
 This year, our team `slight_smile` took part in osu!gaming CTF 2025 and got 3rd
@@ -487,6 +487,8 @@ Yep, looks like you missed.
 osu{fmtstr_in_the_b1g_2025}[[1m[34m*[0m] Got EOF while reading in interactive
 ```
 
+---
+
 # `crypto / please-nominate`
 
 > ok this time i'm going to be a bit more nice and personal when sending my message
@@ -542,8 +544,16 @@ f_i(x) = (a_i + x)^3 - c_i mod N
 
 $$
 
-## Background on Coppersmith
+## Background
 
 For challenges like this, we would ideally want to apply _Coppersmith's method_, a lattice-based method to find _small_ roots of polynomials defined over some ring of polynomials $(Z/NZ)[x]$ with $N$ composite.
+
+A brief rundown on Coppersmith: finding integer solutions to a polynomial $ f(x) $ mod some value $ N $ is a lot, lot harder than just finding integer solutions to a polynomial $ f(x) $ in _general_. However, consider - what if for our value $ f(x) $, $ N $ was very large, to the point where $ f(x) < N $? This would mean that taking the modulus of $ f(x) $ with respect to $ N $ would effectively do nothing. We'd essentially be reducing it down to the easier problem of finding solutions over the integers.
+
+For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^1/3 $ (for this specific polynomial) is sufficient.
+
+The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus, then it would work.
+
+## CRT
 
 
