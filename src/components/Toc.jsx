@@ -23,8 +23,9 @@ export default function Toc({ headings }) {
       })
     }
 
-    // todo: update the offset
-    const observer = new IntersectionObserver(onElementObserved, {})
+    const observer = new IntersectionObserver(onElementObserved, {
+      rootMargin: "-150px 0px -60px 0px"
+    })
 
     markdownBody
       .querySelectorAll("section")

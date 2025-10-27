@@ -1,5 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   font-family: 'Itim', cursive;
+  --black: #06070a;
+  --app-yellow: #FFC01D;
+  --app-purple: #7231FF;
+  --app-gray: #1C1C1C;
 }
 
 html,
@@ -63,10 +71,11 @@ h2 {
       font-family: 'Silkscreen', sans-serif;
       font-size: 3rem;
       opacity: 1;
+      scroll-margin-top: 100px; /* height of your fixed header */
     }
 
     h1 {
-        font-size: 3rem;
+      font-size: 3rem;
     }
 
     h2 {
@@ -96,7 +105,6 @@ h2 {
     a:hover {
         text-decoration: underline;
     }
-
 
     /* https://css-shape.com/wavy-line/ */
     hr {
@@ -139,7 +147,7 @@ h2 {
 
     pre {
         overflow-x: auto;
-        margin: 0px 12px;
+        margin: 12px 0px;
     }
 
     pre {
@@ -149,7 +157,7 @@ h2 {
 
     code, pre span {
         font-family: 'Cascadia Code', monospace;
-        font-size: 0.9rem;
+        font-size: 0.9em;
     }
 
     code {
@@ -159,6 +167,15 @@ h2 {
 
     span[data-rehype-pretty-code-figure] {
         overflow-wrap: break-word;
+    }
+
+    blockquote {
+        box-sizing: border-box;
+        margin: 20px 0;
+        padding: 1rem;
+        background: rgb(31, 31, 40);
+        border-radius: 0 8px 8px 0;
+        border-left: 4px solid var(--app-yellow);
     }
 
     /* TODO: style tables */
@@ -182,3 +199,4 @@ h2 {
         radial-gradient(var(--R) at left 50% top calc(-1*var(--m)*var(--s)),var(--_g)) 
          50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x;
 }
+
