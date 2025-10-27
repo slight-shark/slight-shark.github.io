@@ -14,7 +14,7 @@ import slightSmileFace from "../../assets/slight_smile_face.svg"
         <div class="flex flex-col gap-8 rounded-lg bg-app-gray p-8 md:p-10 pb-6">
           <div class="p-12 sm:p-6 lg:p-0">
             {member.image
-              ? <img class="w-full aspect-square rounded-full" />
+              ? <img class="w-full aspect-square rounded-full" src={member.image} />
               : <img class="w-full aspect-square rounded-full bg-white opacity-5" src={slightSmileFace.src} />
             }
           </div>
