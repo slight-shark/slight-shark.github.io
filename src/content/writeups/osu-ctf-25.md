@@ -19,6 +19,8 @@ place! Here are our writeups for some of the interesting challs.
 >
 > Author: strellic
 
+_written by samuzora_
+
 This challenge is a osu! replay parser, and we can interact with it by uploading
 hexdumps of the replay files. These are the protections enabled on the binary:
 
@@ -484,3 +486,64 @@ Yep, looks like you missed.
 
 osu{fmtstr_in_the_b1g_2025}[[1m[34m*[0m] Got EOF while reading in interactive
 ```
+
+# `crypto / please-nominate`
+
+> ok this time i'm going to be a bit more nice and personal when sending my message
+>
+> expected difficulty: 3/5
+>
+> Author: wwm
+
+_written by wrench_
+
+We're given a relatively small source file and its output.
+
+```py
+from Crypto.Util.number import *
+
+FLAG = open("flag.txt").read()
+
+BNS = ["Plus4j", "Mattay", "Dailycore"]
+print(len(FLAG))
+
+for BN in BNS:
+    print("message for", BN)
+    message = bytes_to_long(
+        (f"hi there {BN}, " + FLAG).encode()
+    )
+    n = getPrime(727) * getPrime(727)
+    e = 3
+    print(n)
+    print(pow(message, e, n))
+```
+
+Let's refer to the moduli as $ n_i $, the plaintexts as $ p_i | flag $, and the ciphertexts as $c_i$, where | denotes concatenation. We're given the moduli $n_i$, the value of $a_i$, and the ciphertexts $c_i$. The goal is to solve for $flag$.
+
+## Modelling
+
+The approach here is to _model_ the information we get the problem into something more mathematical. We'll want to describe it as a set of polynomials, and continue the analysis from there. Recall that in RSA with $e = 3$, we can just model it as a cubic:
+
+$$ f_i(x) = x^3 mod N $$ 
+
+Furthermore, accounting for our given values $c_i$ (which are given to us, and are therefore constants) we can further express our polynomial as the following, with the implication that the _root_ of this polynomial would be our flag:
+
+$$ f_i(x) = x^3 - c_i mod N $$
+
+If we do this for all $i$, we will essentially have a family of polynomials $f_1, f_2, f_3$, all with the same shared root $x$, and we can do... something with that (we'll get there when we get there).
+
+But however, recall that we have a custom _prepended_ message at the front of each plaintext. So this isn't exactly right, still - we need to manipulate these polynomials such that our $flag$ will be a shared root between all $f_i$. Prepending isn't something we can cleanly express as a mathematical expression, so we have to represent the concatenation operation as the _addition_ of some value $a_i$ which we can derive from the `hi there {bn}` message. It should be obvious how to do this - just bitshift the integer value of the message by $8N$, where N is the number of bytes in the flag (we know this to be 147, according to our provided output). 
+
+We'll retrieve some values $a_i$ for each $i$, and we can finally properly model our polynomials with our shared root $FLAG$:
+
+$$
+
+f_i(x) = (a_i + x)^3 - c_i mod N
+
+$$
+
+## Background on Coppersmith
+
+For challenges like this, we would ideally want to apply _Coppersmith's method_, a lattice-based method to find _small_ roots of polynomials defined over some ring of polynomials $(Z/NZ)[x]$ with $N$ composite.
+
+
