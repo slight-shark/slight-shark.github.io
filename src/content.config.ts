@@ -10,6 +10,7 @@ const writeups = defineCollection({
     title: z.string(),
     date: z.coerce.date(),
     authors: z.array(z.string()),
+    visible: z.boolean(),
   })
 })
 

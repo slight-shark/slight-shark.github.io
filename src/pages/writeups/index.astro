@@ -3,7 +3,10 @@ import { getCollection } from "astro:content"
 import NavbarLayout from "@/layouts/NavbarLayout.astro"
 
 let writeups = await getCollection("writeups")
-writeups.sort((a, b) => (b.data.date.getTime() - a.data.date.getTime()))
+writeups
+  .sort((a, b) => (b.data.date.getTime() - a.data.date.getTime()))
+
+writeups = writeups.filter(post => post.data.visible)
 ---
 
 <NavbarLayout>

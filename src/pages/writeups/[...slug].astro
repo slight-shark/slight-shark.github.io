@@ -7,7 +7,9 @@ import Toc from "@/components/Toc"
 export async function getStaticPaths() {
   let writeups = await getCollection("writeups")
 
-  return writeups.map(w => ({
+  return writeups
+    .filter(post => post.data.visible)
+    .map(w => ({
     params: {
       slug: w.id
     }
