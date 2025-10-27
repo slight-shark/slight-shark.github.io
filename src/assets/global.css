@@ -61,7 +61,7 @@ h2 {
 
 .markdown-body {
     z-index: 1;
-    font-size: 1.125rem;
+    font-size: 1.25rem;
 
     p {
         margin: 0.5rem 0rem;
@@ -200,3 +200,12 @@ h2 {
          50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x;
 }
 
+.katex {
+  text-align: center;
+  padding-block: 30px;
+  font-size: 1.2rem;
+}
+
+.katex-html {
+  display: none
+}

@@ -14,33 +14,24 @@ import rehypeFigure from "@microflash/rehype-figure"
 import remarkMath from 'remark-math';
 import rehypeMathjax from 'rehype-mathjax';
 
-// https://astro.build/config
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 export default defineConfig({
   integrations: [react(), tailwind(), mdx()],
-  vite: {
-    plugins: [yaml()]
-  },
+  vite: { plugins: [yaml()] },
   markdown: {
     syntaxHighlight: false,
-    shikiConfig: {
-      wrap: true
-    },
-
-    remarkPlugins: [
-      remarkEmoji, remarkMath
-    ],
-
+    shikiConfig: { wrap: true },
+    remarkPlugins: [remarkEmoji, remarkMath],
     rehypePlugins: [
       sectionize,
-      rehypeMathjax,
       rehypeFigure,
       [
         rehypePrettyCode,
-        {
-          theme: "kanagawa-wave",
-          defaultLang: "ansi",
-        }
-      ]
+        { theme: "kanagawa-wave", defaultLang: "ansi" }
+      ],
+      rehypeKatex // <- supports inline and display math automatically
     ]
   }
 });

