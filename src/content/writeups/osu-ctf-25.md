@@ -3,7 +3,7 @@ title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
     - samuzora
-visible: true # change this to true to view locally; change to false before pushing
+visible: false # change this to true to view locally; change to false before pushing
 ---
 
 This year, our team `slight_smile` took part in osu!gaming CTF 2025 and got 3rd
