@@ -24,3 +24,9 @@
     - crypto
     - pwn
   image: /assets/members/wrenches.jpg
+
+- name: azazo
+  categories:
+    - crypto
+    - misc
+  image: /assets/members/sakamoto.png
