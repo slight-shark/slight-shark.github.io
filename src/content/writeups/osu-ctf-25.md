@@ -520,7 +520,7 @@ for BN in BNS:
     print(pow(message, e, n))
 ```
 
-Let's refer to the moduli as $ n_i $, the plaintexts as $ p_i | flag $, and the ciphertexts as $c_i$, where | denotes concatenation. We're given the moduli $n_i$, the value of $a_i$, and the ciphertexts $c_i$. The goal is to solve for $flag$.
+Let's refer to the moduli as $ n_i $, the plaintexts as $ p_i | \text{flag} $, and the ciphertexts as $c_i$, where | denotes concatenation. We're given the moduli $n_i$, the value of $a_i$, and the ciphertexts $c_i$. The goal is to solve for $\text{flag}$.
 
 ## Modelling
 
@@ -544,7 +544,7 @@ If we do this for all $i$, we will essentially have a family of polynomials $f_1
 
 But however, recall that we have a custom _prepended_ message at the front of each plaintext. So this isn't exactly right, still - we need to manipulate these polynomials such that our $flag$ will be a shared root between all $f_i$. Prepending isn't something we can cleanly express as a mathematical expression, so we have to represent the concatenation operation as the _addition_ of some value $a_i$ which we can derive from the `hi there {bn}` message. It should be obvious how to do this - just bitshift the integer value of the message by $8N$, where N is the number of bytes in the flag (we know this to be 147, according to our provided output). 
 
-We'll retrieve some values $a_i$ for each $i$, and we can finally properly model our polynomials with our shared root $FLAG$:
+We'll retrieve some values $a_i$ for each $i$, and we can finally properly model our polynomials with our shared root $\text{flag}$:
 
 $$
 
@@ -558,25 +558,40 @@ For challenges like this, we would ideally want to apply _Coppersmith's method_,
 
 A brief rundown on Coppersmith: finding integer solutions to a polynomial $ f(x) $ mod some value $ N $ is a lot, lot harder than just finding integer solutions to a polynomial $ f(x) $ in _general_. However, consider - what if for our value $ f(x) $, $ N $ was very large, to the point where $ f(x) < N $? This would mean that taking the modulus of $ f(x) $ with respect to $ N $ would effectively do nothing. We'd essentially be reducing it down to the easier problem of finding solutions over the integers.
 
-<<<<<<< HEAD
-For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^{1/3} $ (for this specific polynomial) is sufficient.
-=======
 For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^\frac{1}{3} $ (for this specific polynomial) is sufficient.
->>>>>>> fc7a5bb (content: azazizizoazozoao)
 
-The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus that still retains $ flag $ as a small root, then it would work.
+The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus that still retains $ \text{flag} $ as a small root, then it would work.
 
 ## CRT
 
-<<<<<<< HEAD
-So let's work on constructing that larger polynomial. We want to define some cubic $ g(x) \bmod \prod_{i=1}^{3} N_i $ such that our target $ flag $ root remains intact. 
-=======
+So let's work on constructing that larger polynomial. We want to define some cubic $ g(x) \bmod \prod_{i=1}^{3} N_i $ such that our target $ \text{flag} $ root remains intact. 
+
 We can do this by leveraging the Chinese Remainder Theorem. Consider a cubic function $ g $ with the following properties:
->>>>>>> fc7a5bb (content: azazizizoazozoao)
 
 $$
 
-<<<<<<< HEAD
+g(x) \equiv Ax ^ 3 + Bx ^ 2 + Cx + D \mod N_1 N_2 N_3
+
+$$
+
+where $ A, B, C, D $ satisfy the following congruence relations:
+
+$$
+
+A \equiv A_i \mod N_i
+\\
+B \equiv B_i \mod N_i
+\\
+C \equiv C_i \mod N_i
+\\
+D \equiv D_i \mod N_i
+
+$$
+
+Does this cubic retain $flag$ as a root? The answer is yes. Definitionally, if we just take $ g(\text{flag}) $ (with the knowledge that $ f_i(\text{flag}) \equiv 0 \mod N_i $), we can see that all values of $ g(\text{flag}) \equiv 0 \mod N_i $, i.e., all $N_i$ _divide_ $ g(\text{flag}) $, and therefore $ N $ must divide $ g(\text{flag}) $ too.
+
+Let's take a step back and consider what this would actually accomplish - we would now have a polynomial with a root $ flag $ of somewhere around 1200 bits, but now our modulus is around 4000 bits. We've now managed to formulate a polynomial with a "small" root, relative to the modulus. All that's left is to similarly reduce the coefficients of our polynomial $ g(x) $ using lattice reduction.
+
 # `crypto / ssss+`
 
 > can you do it again, but with hidden?
@@ -634,28 +649,3 @@ $$
 
 We are then allowed to evaluate $f(x) \bmod 2^{255}-19$ for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $2^{255}-19$.
 
-=======
-g(x) \equiv Ax ^ 3 + Bx ^ 2 + Cx + D \mod N_1 N_2 N_3
-
-$$
-
-where $ A, B, C, D $ satisfy the following congruence relations:
-
-$$
-
-A \equiv A_i \mod N_i
-\\
-B \equiv B_i \mod N_i
-\\
-C \equiv C_i \mod N_i
-\\
-D \equiv D_i \mod N_i
-
-$$
-
-Does this cubic retain $flag$ as a root? The answer is yes. Definitionally, if we just take $ g(flag) $ (with the knowledge that $ f_i(flag) \equiv 0 \mod N_i $), we can see that all values of $ g(flag) \equiv 0 \mod N_i $, i.e., all $N_i$ _divide_ $ g(flag) $, and therefore $ N $ must divide $ g(flag) $ too.
-
-Let's take a step back and consider what this would actually accomplish - we would now have a polynomial with a root $ flag $ of somewhere around 1200 bits, but now our modulus is around 4000 bits. We've now managed to formulate a polynomial with a "small" root, relative to the modulus. All that's left is to similarly reduce the coefficients of our polynomial $ g(x) $ using lattice reduction.
-
-azazo-kun will finish the rest of this for me
->>>>>>> fc7a5bb (content: azazizizoazozoao)
