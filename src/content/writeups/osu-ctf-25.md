@@ -554,16 +554,73 @@ $$
 
 ## Background
 
-For challenges like this, we would ideally want to apply _Coppersmith's method_, a lattice-based method to find _small_ roots of polynomials defined over some ring of polynomials $(Z/NZ)[x]$ with $N$ composite.
+For challenges like this, we would ideally want to apply _Coppersmith's method_, a lattice-based method to find _small_ roots of polynomials defined over some ring of polynomials $(\mathbb{Z}/N\mathbb{Z})[x]$ with $N$ composite.
 
 A brief rundown on Coppersmith: finding integer solutions to a polynomial $ f(x) $ mod some value $ N $ is a lot, lot harder than just finding integer solutions to a polynomial $ f(x) $ in _general_. However, consider - what if for our value $ f(x) $, $ N $ was very large, to the point where $ f(x) < N $? This would mean that taking the modulus of $ f(x) $ with respect to $ N $ would effectively do nothing. We'd essentially be reducing it down to the easier problem of finding solutions over the integers.
 
-For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^1/3 $ (for this specific polynomial) is sufficient.
+For this to be done, we need to meet two requirements: we need our root $ x $ to be sufficiently small, and we also need our coefficients of the polynomial to be small as well. _Smallness_ is measured with respect to the modulus N, of course, $ x < N^{1/3} $ (for this specific polynomial) is sufficient.
 
 The problem is, $ x $ is around 1200 bits, and each individual $ N_i $ is the product of two 727-bit (haha wysi wysi) primes. $ x $ is not small enough with respect to our individual $ N_i $ values for Coppersmith to be effective. If we were somehow able to construct a polynomial with a larger modulus that still retains $ flag $ as a small root, then it would work.
 
 ## CRT
 
-So let's work on constructing that larger polynomial. We want to define some cubic $ g(x) \mod \prod_{i=1}^{3} N_i $ such that our target $ flag $ root remains intact. 
+So let's work on constructing that larger polynomial. We want to define some cubic $ g(x) \bmod \prod_{i=1}^{3} N_i $ such that our target $ flag $ root remains intact. 
 
+
+# `crypto / ssss+`
+
+> can you do it again, but with hidden?
+> 
+> expected difficulty: 3/5
+> 
+> Author: wwm
+
+_written by azazo_
+
+```py
+#!/usr/local/bin/python3
+from Crypto.Util.number import *
+import random
+
+p = 2**255 - 19
+k = 15
+SECRET = random.randrange(0, p)
+
+def lcg(x, a, b, p):
+    return (a * x + b) % p
+
+pp = getPrime(256)
+a = random.randrange(0, pp)
+b = random.randrange(0, pp)
+with open("log.txt", "w+") as f: f.write(f"{a}, {b}, {pp}\n")
+poly = [SECRET]
+while len(poly) != k: poly.append(lcg(poly[-1], a, b, pp))
+with open("log.txt", "a") as f: f.write(str(poly))
+
+def evaluate_poly(f, x):
+    return sum(c * pow(x, i, p) for i, c in enumerate(f)) % p
+
+print("welcome to ssss", flush=True)
+for _ in range(k - 1):
+    x = int(input())
+    assert 0 < x < p, "no cheating!"
+    print(evaluate_poly(poly, x), flush=True)
+
+if int(input("secret? ")) == SECRET:
+    FLAG = open("flag.txt").read()
+    print(FLAG, flush=True)
+```
+
+We have a polynomial $f(x) = \sum_{i=0}^{14} c_{i} x^i$ with the coefficients being consecutive outputs from a linear congruential generator (LCG) with unknown parameters:
+
+$$
+\begin{align}
+c_1 &= \left(a c_0 + b\right) \bmod p\\
+c_2 &= \left(a c_1 + b\right) \bmod p\\
+&\vdots\\
+c_{14} &= \left(a c_{13} + b\right) \bmod p
+\end{align}
+$$
+
+We are then allowed to evaluate $f(x) \bmod 2^{255}-19$ for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $2^{255}-19$.
 
