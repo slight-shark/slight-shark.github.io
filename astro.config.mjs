@@ -12,10 +12,7 @@ import remarkEmoji from "remark-emoji"
 import rehypeFigure from "@microflash/rehype-figure"
 
 import remarkMath from 'remark-math';
-import rehypeMathjax from 'rehype-mathjax';
-
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import rehypeMathjaxChtml from 'rehype-mathjax/chtml'
 
 export default defineConfig({
   integrations: [react(), tailwind(), mdx()],
@@ -31,7 +28,11 @@ export default defineConfig({
         rehypePrettyCode,
         { theme: "kanagawa-wave", defaultLang: "ansi" }
       ],
-      rehypeKatex // <- supports inline and display math automatically
+      [rehypeMathjaxChtml, {
+        chtml: {
+          fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2'
+        }
+      }], // to fix inline not rendering correctly. ref: https://github.com/vercel/next.js/discussions/74625
     ]
   }
 });
