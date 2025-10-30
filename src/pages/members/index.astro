@@ -1,7 +1,6 @@
 ---
 import NavbarLayout from "@/layouts/NavbarLayout.astro"
 import members from "../../../data/members.yml"
-
 import slightSmileFace from "../../assets/slight_smile_face.svg"
 ---
 
@@ -10,24 +9,39 @@ import slightSmileFace from "../../assets/slight_smile_face.svg"
     <h1 class="text-[2rem] md:text-[4rem] mx-auto">MEMBERS</h1>
     <div class="mt-8 md:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-10">
       {
-      members.map((member: any) => (
-        <div class="flex flex-col gap-8 rounded-lg bg-app-gray p-8 md:p-10 pb-6">
-          <div class="p-12 sm:p-6 lg:p-0">
-            {member.image
-              ? <img class="w-full aspect-square rounded-full" src={member.image} />
-              : <img class="w-full aspect-square rounded-full bg-white opacity-5" src={slightSmileFace.src} />
-            }
-          </div>
-          <div>
-            <div class="text-app-yellow">
-              {member.name}
+      members.map((member: any) => {
+        const content = (
+          <>
+            <div class="p-12 sm:p-6 lg:p-0">
+              {member.image
+                ? <img class="w-full aspect-square rounded-full" src={member.image} />
+                : <img class="w-full aspect-square rounded-full bg-white opacity-5" src={slightSmileFace.src} />
+              }
             </div>
-            <div class="text-white">
-              {member.categories.join(", ")}
+            <div>
+              <div class="text-app-yellow">
+                {member.name}
+              </div>
+              <div class="text-white">
+                {member.categories.join(", ")}
+              </div>
             </div>
+          </>
+        );
+        
+        return member.site ? (
+          <a 
+            href={member.site} 
+                   class="flex flex-col gap-8 rounded-lg bg-app-gray p-8 md:p-10 pb-6 cursor-pointer no-underline hover:bg-app-gray/80 transition-colors duration-200"
+          >
+            {content}
+          </a>
+        ) : (
+          <div class="flex flex-col gap-8 rounded-lg bg-app-gray p-8 md:p-10 pb-6">
+            {content}
           </div>
-        </div>
-      ))
+        );
+      })
       }
     </div>
   </div>

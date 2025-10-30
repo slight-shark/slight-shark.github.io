@@ -524,7 +524,7 @@ Let's refer to the moduli as $ n_i $, the plaintexts as $ p_i | \text{flag} $, a
 
 ## Modelling
 
-The approach here is to _model_ the information we get the problem into something more mathematical. We'll want to describe it as a set of polynomials, and continue the analysis from there. Recall that in RSA with $e = 3$, we can just model it as a cubic:
+The approach here is to _model_ this information as a mathematical problem. Recall that RSA with exponent $ e = 3 $ can be modelled as a cubic polynomial:
 
 $$ 
 
@@ -532,7 +532,7 @@ f_i(x) = x^3 \mod N
 
 $$ 
 
-Furthermore, accounting for our given values $c_i$ (which are given to us, and are therefore constants) we can further express our polynomial as the following, with the implication that the _root_ of this polynomial would be our flag:
+Furthermore, accounting for our given values $c_i$ (which are given to us, and are therefore constants) we express our polynomial as the following, with the implication that the _root_ of this polynomial would be our flag:
 
 $$ 
 
@@ -540,11 +540,11 @@ f_i(x) \equiv x^3 - c_i \mod N
 
 $$
 
-If we do this for all $i$, we will essentially have a family of polynomials $f_1, f_2, f_3$, all with the same shared root $x$, and we can do... something with that (we'll get there when we get there).
+If we do this for all $i$, we will have created a family of polynomials $f_1, f_2, f_3$, all with the same shared root $x$, and we can do... something with that (we'll get there when we get there).
 
-But however, recall that we have a custom _prepended_ message at the front of each plaintext. So this isn't exactly right, still - we need to manipulate these polynomials such that our $flag$ will be a shared root between all $f_i$. Prepending isn't something we can cleanly express as a mathematical expression, so we have to represent the concatenation operation as the _addition_ of some value $a_i$ which we can derive from the `hi there {bn}` message. It should be obvious how to do this - just bitshift the integer value of the message by $8N$, where N is the number of bytes in the flag (we know this to be 147, according to our provided output). 
+But however, recall that we have a custom _prepended_ message at the front of each plaintext. We need to manipulate these polynomials such that our $flag$ will be a shared root between all $f_i$. Prepending isn't something we can directly express mathematically, so we have to represent the concatenation operation as the _addition_ of some value $a_i$ which we can derive from the `hi there {bn}` message. It should be obvious how to do this - just bitshift the integer value of the message by $8N$, where N is the number of bytes in the flag (we know this to be 147, according to our provided output). 
 
-We'll retrieve some values $a_i$ for each $i$, and we can finally properly model our polynomials with our shared root $\text{flag}$:
+We'll retrieve some values $a_i$ for each $i$, and we can finally model our polynomials with our shared root $\text{flag}$:
 
 $$
 
@@ -577,20 +577,35 @@ $$
 where $ A, B, C, D $ satisfy the following congruence relations:
 
 $$
-
-A \equiv A_i \mod N_i
-\\
-B \equiv B_i \mod N_i
-\\
-C \equiv C_i \mod N_i
-\\
+\begin{align}
+A \equiv A_i \mod N_i\\
+B \equiv B_i \mod N_i\\
+C \equiv C_i \mod N_i\\
 D \equiv D_i \mod N_i
-
+\end{align}
 $$
 
-Does this cubic retain $flag$ as a root? The answer is yes. Definitionally, if we just take $ g(\text{flag}) $ (with the knowledge that $ f_i(\text{flag}) \equiv 0 \mod N_i $), we can see that all values of $ g(\text{flag}) \equiv 0 \mod N_i $, i.e., all $N_i$ _divide_ $ g(\text{flag}) $, and therefore $ N $ must divide $ g(\text{flag}) $ too.
+Does this cubic retain $\text{flag}$ as a root? The answer is yes. Definitionally, if we take $ g(\text{flag}) $ (with the knowledge that $ f_i(\text{flag}) \equiv 0 \mod N_i $), we can see that all values of $ g(\text{flag}) \equiv 0 \mod N_i $, i.e., all $N_i$ _divide_ $ g(\text{flag}) $, and therefore $ N $ must divide $ g(\text{flag}) $ too.
 
-Let's take a step back and consider what this would actually accomplish - we would now have a polynomial with a root $ flag $ of somewhere around 1200 bits, but now our modulus is around 4000 bits. We've now managed to formulate a polynomial with a "small" root, relative to the modulus. All that's left is to similarly reduce the coefficients of our polynomial $ g(x) $ using lattice reduction.
+Let's take a step back and consider what this would  accomplish - we would now have a polynomial with a root $ flag $ of somewhere around 1200 bits, but now our modulus is around 4000 bits, thereby achieving our goal set out earlier. All that's left is to similarly reduce the coefficients of our polynomial $ g(x) $ using lattice reduction.
+
+## Lattice Formulation
+
+To restate the problem: we have a polynomial $ g $ defined by:
+
+$$
+  g(x) \equiv Ax^3 + Bx^2 + Cx + D \mod N
+$$
+
+with $ \text{flag} $ as some small root. We want to find a polynomial $ G $ that shares that root defined by:
+
+$$
+  G(x) \equiv ax^3 + bx^2 + cx + d \mod N
+$$
+
+where all the coefficients $ a, b, c, d $ are sufficiently small such that $ ax ^3 + bx ^2 + cx + d < N $. This allows us to solve an equivalent, easier problem of finding that root over the integers.
+
+We do this by defining some related polynomials $ F $ with the shared root, encoding them as basis vectors in some lattice, and then reducing the lattice to find a combination of those bases that results in a resulting 'small' vector.
 
 # `crypto / ssss+`
 

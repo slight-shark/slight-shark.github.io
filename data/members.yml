@@ -2,17 +2,23 @@
   categories:
     - rev
     - pwn
+  site:
+    - https://scuffed.online
 
 - name: samuzora
   categories:
     - pwn
     - web
+  site:
+    - https://samuzora.com
   image: /assets/members/samuzora.png
 
 - name: mkofdwu
   categories:
     - web
     - misc
+  site:
+    - https://mkofdwu.github.io
 
 - name: halogen
   categories:
@@ -23,10 +29,14 @@
   categories:
     - crypto
     - pwn
+  site:
+    - https://wrenches.online
   image: /assets/members/wrenches.jpg
 
 - name: azazo
   categories:
     - crypto
     - misc
+  site:
+    - https://blog.azazo.me
   image: /assets/members/sakamoto.png
