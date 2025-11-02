@@ -589,8 +589,6 @@ Does this cubic retain $\text{flag}$ as a root? The answer is yes. Definitionall
 
 Let's take a step back and consider what this would  accomplish - we would now have a polynomial with a root $ flag $ of somewhere around 1200 bits, but now our modulus is around 4000 bits, thereby achieving our goal set out earlier. All that's left is to similarly reduce the coefficients of our polynomial $ g(x) $ using lattice reduction.
 
-## Lattice Formulation
-
 To restate the problem: we have a polynomial $ g $ defined by:
 
 $$
@@ -605,7 +603,10 @@ $$
 
 where all the coefficients $ a, b, c, d $ are sufficiently small such that $ ax ^3 + bx ^2 + cx + d < N $. This allows us to solve an equivalent, easier problem of finding that root over the integers.
 
-We do this by defining some related polynomials $ F $ with the shared root, encoding them as basis vectors in some lattice, and then reducing the lattice to find a combination of those bases that results in a resulting 'small' vector.
+We do this by defining some related polynomials $ F $ with the shared root, encoding them as basis vectors in some lattice, and then reducing the lattice to find a combination of those bases that results in a resulting 'small' vector. The exact formulation for the lattice is a bit more involved (there are specific tricks with respect to just what polynomials we encode within the basis), but ultimately we actually don't need to do all of that because we can just do Sage's builtin .small_roots() and win. 
+
+// azazo post your solve script here please
+```
 
 # `crypto / ssss+`
 
