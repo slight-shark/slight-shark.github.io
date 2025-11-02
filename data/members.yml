@@ -4,6 +4,7 @@
     - pwn
   site:
     - https://scuffed.online
+  image: /assets/members/scuffed.png
 
 - name: samuzora
   categories:

@@ -664,3 +664,310 @@ $$
 
 We are then allowed to evaluate $f(x) \bmod 2^{255}-19$ for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $2^{255}-19$.
 
+# `rev / tosu-2`
+> (˶˃ ᵕ ˂˶) .ᐟ.ᐟ
+>
+> expected difficulty: 3/5
+> 
+> nc tosu-2.challs.sekai.team 1337
+> 
+> Author: es3n1n
+
+_written by scuffed_
+
+This is actually a part two to the initial `tosu-1` challenge, but the first part is a little flawed and not as interesting to solve (soz!), so we'll focus just on `tosu-2`.
+
+Our dist comes with `tosu.exe` and `chal2.map`, which we run by invoking `.\tosu.exe chal2.map` to get this:
+
+<video src="/assets/videos/tosu_1.mp4" controls preload></video>
+
+This doesn't seem like a very doable beatmap to me... 
+
+After the game concludes, a `replay.txt` file is created, which is filled with a bunch of 0s. I managed to hit 1 (one) circle in a demo and observed that the hit circle has a 1 in its place in the `replay.txt` generated! The netcat requires the submission of my `replay.txt`, so it seems like we need to have a specific sequence of hits and misses to pass.
+
+## Analysis
+Since we're skipping past the analysis of `tosu-1` to discuss its sequel straightaway, I'll describe the analysis as if we're dealing with this wholly blind. Let's toss the binary into Ghidra and see what we have to work with. Looking at the imports, we now know that the binary makes use of [Direct3D 9](https://learn.microsoft.com/en-us/windows/win32/api/d3d9/) to render the game.
+
+The easiest way to isolate the relevant functions to the game logic is by working backwards from the strings we see at the end of the game:
+
+![](/assets/images/tosu1.png)
+
+Working with the XREFs, we find that the strings in the end game screen are printed in this block of code:
+```c {lineNos=inline}
+    if (cVar5 != '\0') {
+        FUN_1400408a0("Map finished!",lVar10,uVar17,in_R9);
+        FUN_14003e6a0();
+        FUN_1400408a0("Score: %d",_DAT_14009a408 & 0xffffffff,uVar17,in_R9);
+        FUN_1400408a0("Max Combo: %dx",(ulonglong)DAT_14009a410,uVar17,in_R9);
+        FUN_1400408a0("300: %d",_DAT_14009a420 & 0xffffffff,uVar17,in_R9);
+        FUN_1400408a0("100: %d",_DAT_14009a418 >> 0x20,uVar17,in_R9);
+        FUN_1400408a0("50: %d",_DAT_14009a418 & 0xffffffff,uVar17,in_R9);
+        FUN_1400408a0("Miss: %d",_DAT_14009a420 >> 0x20,uVar17,in_R9);
+        pcVar11 = "Doesn\'t seem right";
+        if (DAT_14009a4ed != '\0') {
+            pcVar11 = "Correct! Submit your replay.txt to the server";
+        }
+        FUN_1400408a0("Solution: %s",(longlong)pcVar11,uVar17,in_R9);
+        FUN_14000fee0();
+    }
+```
+and this chunk of code lies in the function `FUN_140005810`. This function is our main gameloop, and we can see straightaway that we're missing some symbols here and there, but it won't really affect our solve for this challenge. Of note is the global `DAT_14009a4ed`, which appears to be our "win" indicator, so let's rename it to `win_condition`.
+
+Another notable bit of the gameloop function is this data initialization that occurs early on:
+
+```c
+  if ((*(int *)(lVar10 + 4) < DAT_14009a4e8) && (FUN_14004b3b4(&DAT_14009a4e8), DAT_14009a4e8 == -1)) {
+        _DAT_14009a450 = 0x2cfe542af6bcdfc9;
+        uRam000000014009a458 = 0xf827a156b5343296;
+        _DAT_14009a460 = 0xc2cf199748081bd1;
+        uRam000000014009a468 = 0x6e26919c7c7bf2f9;
+        _DAT_14009a470 = 0x8b5b00d8abffae1b;
+        uRam000000014009a478 = 0x96e0cde33808f13d;
+        _DAT_14009a480 = 0xc59babdd835b5d0b;
+        uRam000000014009a488 = 0x6b9e07b75d498495;
+        _DAT_14009a490 = 0xf18c48ce17b46361;
+        uRam000000014009a498 = 0xf9b94c2601dfe836;
+        _DAT_14009a4a0 = 0xdc46ed6a800e449c;
+        uRam000000014009a4a8 = 0xb67a2df488263a5b;
+        _DAT_14009a4b0 = 0x6621c22f7d4d5b15;
+        uRam000000014009a4b8 = 0xe4b8d8381dc49605;
+        _DAT_14009a4c0 = 0x82df48ce211e68a5;
+        uRam000000014009a4c8 = 0x1a6836a93b27b7e4;
+        DAT_14009a4d0 = 0;
+        DAT_14009a4d8 = 0;
+        _DAT_14009a4e0 = 0;
+        atexit(FUN_140076220);
+        _Init_thread_footer(&DAT_14009a4e8);
+  }
+```
+
+Which fills out `DAT_14009a450`. Looking at other references to `DAT_14009a450`, we spot this checker loop:
+
+```c
+    uVar14 = thunk_FUN_140049d80((undefined1 (*) [32])&local_208,(undefined1 (*) [32])&local_1f8);
+    puVar1 = &DAT_14009a450;
+    uVar16 = 0;
+    while (&DAT_14009a450 + uVar14 != puVar1) {
+    if ((&DAT_14009a450)[uVar16] != (&DAT_140077660)[uVar16]) {
+        win_condition = '\0';
+        goto LAB_140005f93;
+    }
+    puVar1 = &DAT_14009a451 + uVar16;
+    uVar16 = uVar16 + 1;
+    }
+    win_condition = '\x01';
+    goto LAB_140005f93;
+```
+
+So we can see that `DAT_14009a450` is eventually checked against some target array `DAT_140077660`, where if and only if all the values line up, do we get our `win_condition` set to true. So let's trace backwards a bit more to see how `DAT_14009a450` gets modified:
+
+```c
+    pcVar11[(int)uVar6] = cVar5;
+    if (cVar5 == '\x01') {
+        DAT_14009a408 = DAT_14009a408 + 50;
+        DAT_14009a418 = DAT_14009a418 + 1;
+    }
+    else if (cVar5 == '\x02') {
+        DAT_14009a408 = DAT_14009a408 + 100;
+        DAT_14009a41c = DAT_14009a41c + 1;
+    }
+    else {
+        DAT_14009a408 = DAT_14009a408 + 300;
+        DAT_14009a420 = DAT_14009a420 + 1;
+    }
+    uVar7 = DAT_14009a40c + 1;
+    _DAT_14009a408 = CONCAT44(uVar7,DAT_14009a408);
+    if ((int)DAT_14009a410 < (int)uVar7) {
+        DAT_14009a410 = uVar7;
+    }
+    FUN_140004c00(&DAT_14009a450,uVar6,cVar5);
+```
+
+Judging by the values being added, we can make an educated guess that `DAT_14009a408` is our score (which is easily verifiable by the end game screen!), `DAT_14009a420` is some track of the number of hits and the local `cVar5` is some way of determining the type of hit it is. The local `uVar6` is also a tracker of our current circle count, which we can easily dynamically verify if needed.
+
+We can find another call to `FUN_140004c00` earlier on in this loop:
+
+```c
+    if ((pcVar11[uVar14] == '\0') && (*(float *)(uVar19 + lVar13) + 0.2 < fVar22)) {
+        pcVar11[uVar14] = '\x04';
+        _DAT_14009a408 = _DAT_14009a408 & 0xffffffff;
+        DAT_14009a424 = DAT_14009a424 + 1;
+        FUN_140004c00(&DAT_14009a450,(uint)uVar14,'\x04');
+        pcVar11 = DAT_14009a3f0;
+        lVar10 = DAT_140099008;
+        lVar13 = DAT_140099000;
+    }
+    uVar14 = uVar14 + 1;
+```
+
+This appears to be called whenever we miss a circle, with it calling `FUN_140004c00` with hit type `0x4`. Let's take a closer look at `FUN_140004c00` then!
+
+```c
+    void FUN_140004c00(byte *param_1,uint param_2,char param_3){
+        char local_res18 [16];
+        
+        local_res18[0] = (param_3 != '\x04') + '0';
+        FUN_140001670((longlong *)(param_1 + 0x80),local_res18);
+        if (param_3 != '\x04') {
+            param_1[param_2 & 0x7f] = param_1[param_2 & 0x7f] ^ (char)param_2 * '\x1b' + 0x37U;
+        }
+        FUN_1400053c0(param_1);
+        return;
+    }
+```
+
+Knowing that `param_1` is our tracking global `DAT_14009a450`, `param_2` is the current circle index and `param_3` is the hit type, we can discern that the logic here is essentially applying some XOR to the current position in the tracking global if we _don't miss_ (doesn't have to be a 300) the circle. 
+
+The mutation step is equivalent to performing:
+```py
+state[n % 128] ^= (n * 27 + 55) & 0xff
+```
+
+This is followed up by the application of `FUN_1400053c0`.
+
+`FUN_1400053c0` essentially takes the value to the left and right of the current index, XORs them together, then stores it in the current index. The decompilation is fairly verbose, but the Python equivalent function looks like this:
+
+```py
+def FUN_1400053c0(a):
+    o = []
+    for i in range(len(a)):
+        k1 = 0
+        if i > 0:
+            k1 = a[i-1]
+        k2 = 0
+        if i < len(a)-1:
+            k2 = a[i+1]
+        o.append(k1 ^ k2)
+    return o
+```
+
+So now we've finally landed on an objective: some sequence of hits and misses will cause some values of this global array to be XOR'd, which after all the transformations are complete, should be equivalent to some target array. So how do we approach that?
+
+## A Dash of Linear Algebra
+A naïve approach would be to model the entire problem in Z3 and hope it eventually resolves, but due to the XORs being "conditional", the direct implementation would lead to a state explosion that doesn't resolve. So we need to be a bit smarter with it.
+
+Note that in $GF(2)$, our good ol' XOR operation $\oplus$ becomes plain addition! Why is this relevant? Well, this means that we can actually model all of our state transitions as linear operations under $GF(2)$ and perhaps apply some lienar algebra to solve this challenge...
+
+### XORing Thy Neighbour
+First, let's try and represent `FUN_1400053c0`, which is always applied irregardless of whether we hit or miss a circle. This is a very direct application of the above observation! We can create a matrix $M$ that represents this state transition by "tessellating" identity matrices. 
+
+A toy example would look like this:
+* Define $N$ to be the number of states. For our example, we peg it at $4$.
+* Define $b$ to be the number of bits per state. For our example, let's just leave it as $1$
+* Define $S_n$ to be our state at iteration $n$, being a column matrix of our states $s_i$ for index $i$
+
+Now, we want to construct a matrix $M$ whereby
+
+$$
+S_{n+1} = 
+\begin{pmatrix}
+s_2\\ 
+s_1 + s_3\\
+s_2 + s_4\\
+s_3
+\end{pmatrix} = MS_n = 
+M
+\begin{pmatrix}
+s_1\\ 
+s_2\\
+s_3\\
+s_4
+\end{pmatrix}
+$$
+
+The appropriate $M$ would look like:
+$$
+M = \begin{pmatrix}
+0 & 1 & 0 & 0\\ 
+1 & 0 & 1 & 0\\
+0 & 1 & 0 & 1\\
+0 & 0 & 1 & 0
+\end{pmatrix}
+$$
+
+To extend this to 1 byte == 8 bits, we simply substitute the $1$s in $M$ with identity matrics of size $N$, turning $M$ into a huge block matrix. Furthermore, we just have to keep multiplying by this matrix $M$ to get the next state, and the next, and so on! Modelling this in Sage, we get:
+
+```py
+N  = 128 # number of states == len(DAT_14009a450)
+T  = 1080 # number of steps == number of circles
+NB = 8*N # 8 bits to a byte
+
+F = GF(2)
+M = matrix(F, NB, NB)
+for i in range(N):
+    for bit in range(8):
+        row = i*8 + bit
+        if i > 0:
+            M[row, (i-1)*8 + bit] = 1
+        if i < N-1:
+            M[row, (i+1)*8 + bit] = 1
+```
+
+### The Hit Mutation
+
+So now we need to model what happens when you successfully Click a Circle. Recall the mutation step is:
+```py
+state[n % 128] ^= (n * 27 + 55) & 0xff
+```
+Once again, since we are operating in $GF(2)$, this is all linear, and instead of being an XOR against `(n * 27 + 55) & 0xff`, it becomes merely addition. This means that we can model our complete state transition to be
+$$
+S_{n+1} = MS_{n} \oplus u_n \cdot \text{hits[n]}
+$$
+
+Where $u_n$ is the XOR term $n * 27 + 55 \pmod{128}$ that will be added to the $n \pmod{128}$ element of the column matrix. Here, $\text{hits[n]}$ would be either $0$ or $1$, essentially being a one-hot encoding for whether we hit the circle or not.
+
+This construction would look like this in Sage:
+```py
+idx = n % N
+val = (n*27 + 55) & 0xff
+u = vector(F, NB)
+for bit in range(8):
+    if (val >> bit) & 1:
+        u[idx*8 + bit] = 1
+```
+
+We can then unroll our entire expression, turning the recurrence relation into a big sum:
+$$
+S_{n} = M^nS_{0} \oplus \sum_{i=0}^{n-1} M^{n-i} u_i \cdot \text{hits[i]}
+\implies \sum_{i=0}^{n-1} M^{n-i} u_i \cdot \text{hits[i]} = S_{n} \oplus  M^nS_{0}
+$$
+
+Now of course, this big sum of matrices itself can also be modelled as matrix multiplication! Our target vector, $\text{hits}$, can be treated as a column vector, and all our transformations $M^{n-i} u_i$ can be columns of a matrix we multiply it against. Our final problem thus boils down to:
+$$
+\begin{pmatrix}
+M^{n} u_0 & M^{n-1} u_1 & ... & u_n
+\end{pmatrix}
+\cdot \text{hits[n]} = S_{n} \oplus  M^nS_{0}
+$$
+
+The construction of the matrix with all the XOR state transitions would look like this in Sage:
+```py
+A = matrix(F, NB, T)
+for n in range(T):
+    idx = n % N
+    val = (n*27 + 55) & 0xff
+    u = vector(F, NB)
+    for bit in range(8):
+        if (val >> bit) & 1:
+            u[idx*8 + bit] = 1
+    c = M^(T-n) * u
+    A.set_column(n, c)
+```
+
+So now all we have to do is to solve for $\text{hits[n]}$, which we can do with the magical `solve_right` function in Sage.
+
+```py
+# initial state, from earlier
+S_0 = bytes.fromhex("C9DFBCF62A54FE2C963234B556A127F8...") # truncated
+# final state, DAT_140077660, copied from the binary
+S_n = bytes([ 0x14, 0x64, 0x42, 0x4a, 0x00, 0xcc, 0x14, 0x34 ... ])  # truncated
+S_0 = bytes_to_vec(S_0)
+S_n = bytes_to_vec(S_n)
+b = S_n + (M^T)*S_0
+
+hits = A.solve_right(b)
+```
+
+We compile our `hits` vector into a `replay.txt`, send it to the netcat and get our flag!
+
+Flag: `osu{e5ed275c44694a8f9688065ff540e1057dfbc948}`
