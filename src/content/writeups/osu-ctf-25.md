@@ -678,6 +678,8 @@ if int(input("secret? ")) == SECRET:
     print(FLAG, flush=True)
 ```
 
+## Analysis
+
 We have a polynomial $f(x) = \sum_{i=0}^{14} c_{i} x^i$ with the coefficients being consecutive outputs from a linear congruential generator (LCG) with unknown parameters $a, b, p_1$ and starting value $c_0$:
 
 $$
@@ -692,6 +694,8 @@ $$
 We are then allowed to evaluate $f(x) \bmod p_2$ (where $p_2 = 2^{255}-19$) for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $p_2$.
 
 This challenge is a sequel to the earlier challenge `ssss`, which used the same prime for both the LCG and the polynomial evaluation. In that challenge, we could simply formulate the polynomial evaluations we get as simultaneous equations in $a, b, c_0$ and solve to get the flag. However, that won't work here, as the two modulos don't interact nicely.
+
+## Recovering LCG
 
 If we obtain some consecutive outputs of the LCG, $l_i$, we can recover the parameters of the LCG by calculating difference between successive terms $d_i$ and finding $d_i d_{i+2} - d_{i+1}^2$: note that
 
@@ -715,6 +719,8 @@ $$
 
 With this, $p_1$ (or a small multiple of it) can be obtained by finding the GCD of several of these expressions, and $a$ and $b$ can also be trivially recovered from there. The minimum number of successive values from the LCG we require is 5 (to get 4 successive differences), so we just need to get at least 5 coefficients of the polynomial.
 
+## Recovering polynomial
+
 Since we only get 14 evaluations, we can only form 14 linear equations, and we can't recover all 15 coefficients of the polynomial. However, note that if we pass in a value $x$ such that $x^i \equiv x^j$ for some $i \ne j$, then the corresponding coefficients $c_i$ and $c_j$ will have the same coefficients in all 14 linear equations, and we can "collapse" them down into one variable.
 
 Does such an $x$ exist here? Yes! Recall that the order of $\mathbb{Z}_{2^{255}-19}^*$ is $2^{255}-20$, which just so happens to be a multiple of 12. This implies that there exists an element of order 12, $\omega$, fulfilling the property that 12 is the smallest positive integer $k$ for which $\omega^{k} = 1$ holds true. If we evaluate the polynomial at $\omega$ or powers of it, the coefficients for $a_0$ and $a_{12}$, $a_1$ and $a_{13}$, and $a_2$ and $a_{14}$ will be the same, leaving us with effectively 12 variables.
@@ -723,7 +729,7 @@ With this in mind, we can first find the value of $\omega$ then send $\omega^i, 
 
 There is just one more hurdle to get past. We cannot use these values directly to recover the LCG parameters by the method discussed earlier, since these values have been additionally reduced mod $p_2$. However, since it is guaranteed that $p_1 < 2^{256}$ and we know that $2p_2 > 2^{256}$, there are only two possibilities for each LCG output given the corresponding coefficient. Since we only need five consecutive outputs of the LCG, we just need to check all $2^5 = 32$ cases, which isn't that bad.
 
-Here is the final (slightly ugly) solve script:
+Here is the final solve script:
 ```py
 p = 2^255-19
 omega = cyclotomic_polynomial(12).roots(GF(2^255-19), multiplicities=False)[0]
@@ -746,29 +752,24 @@ for i in range(12):
 vals = vector(GF(p), vals)
 a = [ZZ(i) for i in M.solve_right(vals)[3:]]
 
-for k1 in range(2):
-    for k2 in range(2):
-        for k3 in range(2):
-            for k4 in range(2):
-                for k5 in range(2):
-                    a0 = a[0] + k1*p
-                    a1 = a[1] + k2*p
-                    a2 = a[2] + k3*p
-                    a3 = a[3] + k4*p
-                    a4 = a[4] + k5*p
-                    pp = gcd((a2-a1)*(a4-a3)-(a3-a2)^2, (a3-a2)*(a1-a0)-(a2-a1)^2)
-                    while pp.nbits() > 256:
-                        pp //= trial_division(pp)
-                    if pp.nbits() == 256:
-                        a = GF(pp)((a2-a1)/(a1-a0))
-                        b = a1 - a*a0
-                        for i in range(3):
-                            a0 = GF(pp)(a0-b)/a
-                        io.sendline(b"1")
-                        io.sendline(b"1")
-                        io.sendline(str(a0).encode())
-                        print(io.recvall().decode())
-                        exit()
+import itertools
+for ks in itertools.product(range(2), repeat=5):
+    a_s = [a + k*p for a, k in zip(a, ks)]
+    ds = [a1 - a0 for a0, a1 in zip(a_s, a_s[1:])]
+    pp = gcd(ds[0]*ds[2]-ds[1]^2, ds[1]*ds[3]-ds[2]^2)
+    while pp.nbits() > 256:
+        pp //= trial_division(pp)
+    if pp.nbits() == 256:
+        a = GF(pp)(ds[1]/ds[0])
+        b = a_s[1] - a*a_s[0]
+        a0 = a_s[0]
+        for i in range(3):
+            a0 = GF(pp)(a0-b)/a
+        io.sendline(b"1")
+        io.sendline(b"1")
+        io.sendline(str(a0).encode())
+        print(io.recvall().decode())
+        break
 ```
 
 Flag: `osu{0r_d1d_y0u_us3_fl45hl1ght_1nst34d?}`
