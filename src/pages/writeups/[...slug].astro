@@ -26,10 +26,10 @@ const { Content, headings } = await render(post)
 ---
 
 <NavbarLayout>
-  <div class="flex gap-12 w-full xl:w-[1280px] mx-8 xl:mx-auto px-4 md:px-24 lg:px-48 pb-8 md:pb-24">
-    <div class="flex-1 flex flex-col gap-6">
-      <div class="w-auto">
-        <h1>{post.data.title}</h1>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-12 w-full xl:w-[1380px] xl:mx-auto px-8 md:px-16 lg:px-48 pb-8 md:pb-24">
+    <div class="col-span-3 flex flex-col gap-6">
+      <div class="w-auto pt-[4em]">
+        <h1 class="break-all">{post.data.title}</h1>
         <div class="mt-6 text-lg text-white">
           by {post.data.authors.join(", ")}
         </div>
@@ -42,7 +42,7 @@ const { Content, headings } = await render(post)
         <Content />
       </div>
     </div>
-    <div class="mt-[4rem]">
+    <div class="hidden md:block">
       <Toc client:load headings={headings.filter(h => h.depth <= 1)} />
     </div>
   </div>

@@ -34,7 +34,7 @@ export default function Toc({ headings }) {
   }, [tocRef])
 
   return (
-    <div className="hidden md:block sticky top-24 text-xl">
+    <div className="hidden md:block mt-[4rem] sticky top-24 text-xl">
       <div className="text-white opacity-80 mb-4">Sections</div>
       <div ref={tocRef}>
         {headings.map(h => (

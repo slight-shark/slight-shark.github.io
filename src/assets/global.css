@@ -10,6 +10,33 @@
   --app-gray: #1C1C1C;
 }
 
+*::-webkit-scrollbar {
+    display: block;
+    /* width: 6px; */
+    /* height: 6px; */
+    transition: all 0.2s ease;
+    background: rgb(0 0 0 / 0%);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgb(75 75 75);
+    border-radius: 18px;
+    background-clip: content-box;
+    border: 3px solid transparent;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+    border: 1px solid rgb(0 0 0 / 0%);
+}
+
+*::-webkit-scrollbar-thumb-hover {
+    background: #a1a1a1;
+    border-radius: 18px;
+    background-clip: content-box;
+    border: 3px solid transparent;
+}
+
 html,
 body {
   margin: 0;
@@ -179,6 +206,22 @@ h2 {
         border-left: 4px solid var(--app-yellow);
     }
 
+    mjx-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .katex {
+        text-align: center;
+        margin: auto;
+        font-size: 1.4rem;
+    }
+
+    .katex-html {
+        display: none;
+    }
+
     /* TODO: style tables */
 }
 
@@ -199,14 +242,4 @@ h2 {
          calc(50% - 2*var(--s)) calc(50% - var(--s)/2 - var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x,
         radial-gradient(var(--R) at left 50% top calc(-1*var(--m)*var(--s)),var(--_g)) 
          50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s) + var(--b)) repeat-x;
-}
-
-.katex {
-  text-align: center;
-  margin: auto;
-  font-size: 1.4rem;
-}
-
-.katex-html {
-  display: none
 }
