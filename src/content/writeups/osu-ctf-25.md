@@ -606,6 +606,8 @@ where all the coefficients $ a, b, c, d $ are sufficiently small such that $ ax 
 We do this by defining some related polynomials $ F $ with the shared root, encoding them as basis vectors in some lattice, and then reducing the lattice to find a combination of those bases that results in a resulting 'small' vector. The exact formulation for the lattice is a bit more involved (there are specific tricks with respect to just what polynomials we encode within the basis), but ultimately we actually don't need to do all of that because we can just do Sage's builtin .small_roots() and win. 
 
 ```py
+from Crypto.Util.number import long_to_bytes, bytes_to_long
+
 ns = [
     398846569478640111212929905737126219425846611917845064245986310899352455531776606361272505433849914145167344554995030812644189047710542954339906669786929747875597103059283954786345252202913509966200329213618547501451752329008531151228646387182403280019664272348231587940227470159846477386295856419407431569159867135365878913551268186765163877676657618137090681937329865631964114691373454627873900294385351135992352798790940857277941472243,
     263921537800979838796221921202623647462415714721726394821753160972868778052085367522658133754602607941536627474441882978361116817475949497489399939969612509386335591643019109294105788234910211931439396509289221190345347268312099449152342020093136914687793357372601654532872673983206837150636881928382445566331068237688851345596537893940860402116702078271640048006152159670916299390559068168682951764623558492401318864545619303656361575039,
@@ -695,7 +697,7 @@ We are then allowed to evaluate $f(x) \bmod p_2$ (where $p_2 = 2^{255}-19$) for 
 
 This challenge is a sequel to the earlier challenge `ssss`, which used the same prime for both the LCG and the polynomial evaluation. In that challenge, we could simply formulate the polynomial evaluations we get as simultaneous equations in $a, b, c_0$ and solve to get the flag. However, that won't work here, as the two modulos don't interact nicely.
 
-## Recovering LCG
+## Recovering the LCG
 
 If we obtain some consecutive outputs of the LCG, $l_i$, we can recover the parameters of the LCG by calculating difference between successive terms $d_i$ and finding $d_i d_{i+2} - d_{i+1}^2$: note that
 
@@ -713,13 +715,13 @@ and so
 $$
 \begin{align}
 d_i d_{i+2} - d_{i+1}^2 &\equiv d_i \left( a^2 d_i \right) - \left( a d_i \right)^2\\
-&\equiv 0 \pmod p_1
+&\equiv 0 \pmod {p_1}
 \end{align}
 $$
 
 With this, $p_1$ (or a small multiple of it) can be obtained by finding the GCD of several of these expressions, and $a$ and $b$ can also be trivially recovered from there. The minimum number of successive values from the LCG we require is 5 (to get 4 successive differences), so we just need to get at least 5 coefficients of the polynomial.
 
-## Recovering polynomial
+## Recovering the polynomial
 
 Since we only get 14 evaluations, we can only form 14 linear equations, and we can't recover all 15 coefficients of the polynomial. However, note that if we pass in a value $x$ such that $x^i \equiv x^j$ for some $i \ne j$, then the corresponding coefficients $c_i$ and $c_j$ will have the same coefficients in all 14 linear equations, and we can "collapse" them down into one variable.
 
