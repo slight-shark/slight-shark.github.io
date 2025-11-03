@@ -3,7 +3,7 @@ title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
     - all of us
-visible: false # change this to true to view locally; change to false before pushing
+visible: true # change this to true to view locally; change to false before pushing
 ---
 
 This year, our team `slight_smile` took part in osu!gaming CTF 2025 and got 3rd
@@ -605,8 +605,34 @@ where all the coefficients $ a, b, c, d $ are sufficiently small such that $ ax 
 
 We do this by defining some related polynomials $ F $ with the shared root, encoding them as basis vectors in some lattice, and then reducing the lattice to find a combination of those bases that results in a resulting 'small' vector. The exact formulation for the lattice is a bit more involved (there are specific tricks with respect to just what polynomials we encode within the basis), but ultimately we actually don't need to do all of that because we can just do Sage's builtin .small_roots() and win. 
 
-// azazo post your solve script here please
+```py
+ns = [
+    398846569478640111212929905737126219425846611917845064245986310899352455531776606361272505433849914145167344554995030812644189047710542954339906669786929747875597103059283954786345252202913509966200329213618547501451752329008531151228646387182403280019664272348231587940227470159846477386295856419407431569159867135365878913551268186765163877676657618137090681937329865631964114691373454627873900294385351135992352798790940857277941472243,
+    263921537800979838796221921202623647462415714721726394821753160972868778052085367522658133754602607941536627474441882978361116817475949497489399939969612509386335591643019109294105788234910211931439396509289221190345347268312099449152342020093136914687793357372601654532872673983206837150636881928382445566331068237688851345596537893940860402116702078271640048006152159670916299390559068168682951764623558492401318864545619303656361575039,
+    244031565800210621970295548144726813179733488382314342571474949081381534498271587584918252306707810369627816196681952536809552862200098862267362735277533022204353497254323228274491354364582967316701126783750290886096960998524414107270804949357307485711415647006606381700355291677615735646360495158637105102935658791364633128882874894799509049190571860852436246528522948513282608143921733438326627413507376148669722384969604597622237576689
+]
+
+cs = [
+    158222951303542921410153264594688628146576794503998427093311713650774531277430572380170172031191979123500854263417781975728851277579707820383487572964731381023292312261571110891911863884482902461410218286288183400964045679561296043109527250114073394295486982996930960424139332989226106162113091535475425207610140495532136130360540296097313129598880764160739736823532823136291009499982471028009894097569348660440830784543668141509385395632,
+    166535918659821916010028099769670832129351247306732465032191446110439632420210106966178779555368253320514619095691319433325610616798380002564235371548166904170934635615481900225094067835806190805967329346507481446735982286060193425107057243896658750175391024795867108700750688771820192759373880324263838550825384190714299697136118712791588291627904942573970568726142296145821435413605295796704576678263679112272532276173497584694652201371,
+    132630164676661516893599967289982601955380588903536428955472887691456873565355730161547637935630009622741758822400797894281114572338413548852823840995609427904180355965179631480101131212344121270312182355342132383562008365671754190667582150820337165104642347684925014217687937383396003151315200366708307846959894632317624125785370063052712288658901699972320248281442796056361927746314341729204052997736037101265782906021307934740092047950,
+]
+
+BNS = ["Plus4j", "Mattay", "Dailycore"]
+ms = [bytes_to_long((f"hi there {BN}, " + "\x00"*147).encode()) for BN in BNS]
+
+ps = [Zmod(n)[x]((x + m)^3 - c) for n, m, c in zip(ns, ms, cs)]
+coeffs = [
+    crt(list(map(ZZ, m)), ns) for m in zip(*ps)
+]
+f = Zmod(prod(ns))[x](coeffs)
+
+from Crypto.Util.number import long_to_bytes
+flag = f.small_roots(X=256^150, beta=1, epsilon=0.08)[0]
+print(long_to_bytes(ZZ(flag)))
 ```
+
+Flag: `osu{0mg_my_m4p_f1n4lly_g0t_r4nk3d_1m_s0_h4ppy!!}`
 
 # `crypto / ssss+`
 
@@ -652,18 +678,100 @@ if int(input("secret? ")) == SECRET:
     print(FLAG, flush=True)
 ```
 
-We have a polynomial $f(x) = \sum_{i=0}^{14} c_{i} x^i$ with the coefficients being consecutive outputs from a linear congruential generator (LCG) with unknown parameters:
+We have a polynomial $f(x) = \sum_{i=0}^{14} c_{i} x^i$ with the coefficients being consecutive outputs from a linear congruential generator (LCG) with unknown parameters $a, b, p_1$ and starting value $c_0$:
 
 $$
 \begin{align}
-c_1 &= \left(a c_0 + b\right) \bmod p\\
-c_2 &= \left(a c_1 + b\right) \bmod p\\
+c_1 &= \left(a c_0 + b\right) \bmod p_1\\
+c_2 &= \left(a c_1 + b\right) \bmod p_1\\
 &\vdots\\
-c_{14} &= \left(a c_{13} + b\right) \bmod p
+c_{14} &= \left(a c_{13} + b\right) \bmod p_1
 \end{align}
 $$
 
-We are then allowed to evaluate $f(x) \bmod 2^{255}-19$ for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $2^{255}-19$.
+We are then allowed to evaluate $f(x) \bmod p_2$ (where $p_2 = 2^{255}-19$) for 14 times, before we must give the value of $c_0$ to the server to get the flag. There is also no simple way to cheese this challenge as the `assert 0 < x < p{:py}` check prevents us from entering multiples of $p_2$.
+
+This challenge is a sequel to the earlier challenge `ssss`, which used the same prime for both the LCG and the polynomial evaluation. In that challenge, we could simply formulate the polynomial evaluations we get as simultaneous equations in $a, b, c_0$ and solve to get the flag. However, that won't work here, as the two modulos don't interact nicely.
+
+If we obtain some consecutive outputs of the LCG, $l_i$, we can recover the parameters of the LCG by calculating difference between successive terms $d_i$ and finding $d_i d_{i+2} - d_{i+1}^2$: note that
+
+$$
+\begin{align}
+d_{i+1} &\equiv l_{i+2} - l_{i+1}\\
+&\equiv \left(a l_{i+1} + b\right) - \left(a l_i + b\right)\\
+&\equiv a l_{i+1}  - a l_i\\
+&\equiv a d_i\\
+\end{align}
+$$
+
+and so
+
+$$
+\begin{align}
+d_i d_{i+2} - d_{i+1}^2 &\equiv d_i \left( a^2 d_i \right) - \left( a d_i \right)^2\\
+&\equiv 0 \pmod p_1
+\end{align}
+$$
+
+With this, $p_1$ (or a small multiple of it) can be obtained by finding the GCD of several of these expressions, and $a$ and $b$ can also be trivially recovered from there. The minimum number of successive values from the LCG we require is 5 (to get 4 successive differences), so we just need to get at least 5 coefficients of the polynomial.
+
+Since we only get 14 evaluations, we can only form 14 linear equations, and we can't recover all 15 coefficients of the polynomial. However, note that if we pass in a value $x$ such that $x^i \equiv x^j$ for some $i \ne j$, then the corresponding coefficients $c_i$ and $c_j$ will have the same coefficients in all 14 linear equations, and we can "collapse" them down into one variable.
+
+Does such an $x$ exist here? Yes! Recall that the order of $\mathbb{Z}_{2^{255}-19}^*$ is $2^{255}-20$, which just so happens to be a multiple of 12. This implies that there exists an element of order 12, $\omega$, fulfilling the property that 12 is the smallest positive integer $k$ for which $\omega^{k} = 1$ holds true. If we evaluate the polynomial at $\omega$ or powers of it, the coefficients for $a_0$ and $a_{12}$, $a_1$ and $a_{13}$, and $a_2$ and $a_{14}$ will be the same, leaving us with effectively 12 variables.
+
+With this in mind, we can first find the value of $\omega$ then send $\omega^i, 0 < i < 12$ to the server to get our linear equations, then solve to get the values of $a_0 + a_{12}$, $a_1 + a_{13}$, $a_2 + a_{14}$ and $a_3, ..., a_{11}$.
+
+There is just one more hurdle to get past. We cannot use these values directly to recover the LCG parameters by the method discussed earlier, since these values have been additionally reduced mod $p_2$. However, since it is guaranteed that $p_1 < 2^{256}$ and we know that $2p_2 > 2^{256}$, there are only two possibilities for each LCG output given the corresponding coefficient. Since we only need five consecutive outputs of the LCG, we just need to check all $2^5 = 32$ cases, which isn't that bad.
+
+Here is the final (slightly ugly) solve script:
+```py
+p = 2^255-19
+omega = cyclotomic_polynomial(12).roots(GF(2^255-19), multiplicities=False)[0]
+
+M = matrix(GF(p), 12, 12)
+for i in range(12):
+    for j in range(12):
+        M[i, j] = omega^(i*j)
+
+vals = []
+
+from pwn import *
+
+io = remote("ssssp.challs.sekai.team", 1337)
+io.recvuntil(b"welcome to ssss\n")
+for i in range(12):
+    io.sendline(str(omega^i).encode())
+    vals.append(int(io.recvline().strip()))
+
+vals = vector(GF(p), vals)
+a = [ZZ(i) for i in M.solve_right(vals)[3:]]
+
+for k1 in range(2):
+    for k2 in range(2):
+        for k3 in range(2):
+            for k4 in range(2):
+                for k5 in range(2):
+                    a0 = a[0] + k1*p
+                    a1 = a[1] + k2*p
+                    a2 = a[2] + k3*p
+                    a3 = a[3] + k4*p
+                    a4 = a[4] + k5*p
+                    pp = gcd((a2-a1)*(a4-a3)-(a3-a2)^2, (a3-a2)*(a1-a0)-(a2-a1)^2)
+                    while pp.nbits() > 256:
+                        pp //= trial_division(pp)
+                    if pp.nbits() == 256:
+                        a = GF(pp)((a2-a1)/(a1-a0))
+                        b = a1 - a*a0
+                        for i in range(3):
+                            a0 = GF(pp)(a0-b)/a
+                        io.sendline(b"1")
+                        io.sendline(b"1")
+                        io.sendline(str(a0).encode())
+                        print(io.recvall().decode())
+                        exit()
+```
+
+Flag: `osu{0r_d1d_y0u_us3_fl45hl1ght_1nst34d?}`
 
 # `rev / tosu-2`
 > (˶˃ ᵕ ˂˶) .ᐟ.ᐟ
