@@ -2,7 +2,7 @@
 title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
-    - samuzora, azazo, wrenches, kek
+    - samuzora, azazo, wrenches, kek, scuffed
 visible: true # change this to true to view locally; change to false before pushing
 ---
 
