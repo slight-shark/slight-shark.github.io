@@ -41,3 +41,11 @@
   site:
     - https://blog.azazo.me
   image: /assets/members/sakamoto.png
+
+- name: kek
+  categories:
+    - web
+    - misc
+  site:
+    - https://joeyta.ng
+  image: /assets/members/kek.png
