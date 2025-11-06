@@ -2,8 +2,8 @@
 title: osu!gaming CTF 2025
 date: 2025-10-27
 authors:
-    - all of us
-visible: false # change this to true to view locally; change to false before pushing
+    - samuzora, azazo, wrenches, kek
+visible: true # change this to true to view locally; change to false before pushing
 ---
 
 This year, our team `slight_smile` took part in osu!gaming CTF 2025 and got 3rd
@@ -1101,7 +1101,8 @@ Initial recon of this challenge is pretty simple due to the source being provide
 We see index.js, flag.txt, and readflag.c. Additionally, the challenge is instanced.  
 Immediately, this tells me that we _probably_ have to achieve rce/at least be able to execute a binary somehow to execute readflag and then pipe the output of that binary somewhere.  
 
-Lets take a look at Dockerfile  
+Let's take a look at the Dockerfile:
+
 ```dockerfile title="Dockerfile"
 FROM gcc:latest AS build-readflag
 COPY readflag.c /readflag.c
@@ -1131,12 +1132,13 @@ COPY index.js ./
 ENTRYPOINT [ "node", "index.js" ]
 ```  
 
-Our suspicions are confirmed! As we can see, on build, the readflag.c script is built and the resultant binary is chwon'ed to root and placed in the root directory /. Thereafter, the flag is also placed in root and chown'ed to root.  
-Unzip and p7zip-full and installed for some reason and then the webserver is setup and ran as the "app" user.  
-Therefore, even if we achieve an arb file read/write, we are unable to read the flag.txt file and have to find some way to call the /readflag binary.  
+Our suspicions are confirmed! As we can see, on build, the `readflag.c` script is built and the resultant binary is chown'ed to root and placed in the root directory /. Thereafter, the flag is also placed in root and chown'ed to root.  
+Unzip and p7zip-full are installed (for some reason), then the server is ran as the `app` user. 
+Therefore, even if we achieve an arb file read/write, we are unable to read the `flag.txt` file due to user permissions and have to find some way to call the `/readflag` binary.  
 
 
-Next, lets take a look a readflag.c
+Next, let's take a look at `readflag.c`:
+
 ```c title=readflag.c
 /* readflag.c — minimal SUID reader (safer than system()) */
 #define _GNU_SOURCE
@@ -1174,9 +1176,9 @@ int main(void) {
 }
 ```
 
-This is pretty simple, it just reads /flag.txt and pipes the output to stdout. Nothing too fancy here  
+This is pretty simple, it just reads `/flag.txt` and pipes the output to stdout. Nothing too fancy here.  
 
-Now, onto the meat and potatoes of this challenge - index.js
+Now, onto the meat and potatoes of this challenge - `index.js`:
 
 There are quite a few functions that look potentially interesting, let's take a look at them  
 
@@ -1201,12 +1203,12 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 ```
 
-Here, the webserver defines MAX_UPLOAD_BYTES, which is likely the maximum size of any file we are allowed to upload in the future. 2MB is rather large so we ought not to be worried here. Furthermore, this tells us that we likely don't need to upload large files in an attempt to lag the filesystem.  
-Next, UPLOAD_DIR is set to /tmp/uploads - likely where our uploaded files are stored.  
+Here, the webserver defines `MAX_UPLOAD_BYTES`, which is likely the maximum size of any file we are allowed to upload in the future. 2MB is rather large so we ought not to be worried here. Furthermore, this tells us that we likely don't need to upload large files in an attempt to lag the filesystem.  
+Next, `UPLOAD_DIR` is set to `/tmp/uploads` - likely where our uploaded files are stored.  
 
-We can see that multer is configured with diskStorage to UPLOAD_DIR, confirming our suspicions.  
+We can see that multer is configured with `diskStorage` to `UPLOAD_DIR`, confirming our suspicions.  
 
-Lastly, fileFilter filters all '..' and '/' and '\' from the filename, almost definitively preventing naive path traversal.  
+Lastly, `fileFilter` filters all '..' and '/' and '\' from the filename, almost definitively preventing naive path traversal.  
 
 
 ```javascript title=index.js
@@ -1219,8 +1221,8 @@ app.post('/upload', upload.single('file'), (req, res) => {
 });
 ```
 
-The upload endpoint is pretty basic. We just need to provide a filename, and it checks if the filename includes '..' or '/'. Interestingly enough, the if loop where it returns "invalid filename" doesn't actually check for '\'. Thought that was pretty interesting at first but it leads to nowhere in the end.  
-With this, we have a file upload to anywhere in /tmp/uploads  
+The upload endpoint is pretty basic. We just need to provide a filename, and it checks if the filename includes `'..'` or `'/'`. Interestingly enough, the if loop where it returns "invalid filename" doesn't actually check for `'\'`. I thought that was pretty interesting at first but it leads to nowhere in the end.  
+With this, we have file upload to anywhere in `/tmp/uploads`:
 
 ```javascript title=index.js
 
@@ -1314,11 +1316,11 @@ app.get('/process', async (req, res) => {
 ```
 
 
-This is the meat of the challenge. In essence, the /process endpoint allows us to specify a single character filename. Afterwhich, it opens /tmp/uploads/<filename> as a zipfile, does some path normalization, checks for '/' in record names (to prevent path traversal).  
+This is the meat of the challenge. In essence, the `/process` endpoint allows us to specify a single character filename. After which, it opens `/tmp/uploads/<filename>` as a zip file, does some path normalization, checks for `'/'` in record names (to prevent path traversal).  
 
-If the zip file passes all these checks, it creates a folder /tmp/uploads/<filename>_extracted (if it doesn't already exist), waits for 1 second, copies /tmp/uploads/<filename> over to /tmp/uploads/<filename>_extracted and unzips the file with the unzip command with a timeout of 10 seconds.  
+If the zip file passes all these checks, it creates a folder `/tmp/uploads/<filename>_extracted` (if it doesn't already exist), waits for 1 second, copies `/tmp/uploads/<filename>` over to `/tmp/uploads/<filename>_extracted` and unzips the file with the unzip command with a timeout of 10 seconds.  
 
-Lastly, it attempts to read req.query.file (that cannot contain / or ..) with ```!entryPath.endsWith('.jpg') && entryName.length > 1``` this check and returns the contents of the file.  
+Lastly, it attempts to read `req.query.file` (that cannot contain / or ..) with ```!entryPath.endsWith('.jpg') && entryName.length > 1```: this check and returns the contents of the file.  
 
 
 ## Thought Process
@@ -1327,26 +1329,27 @@ A few things stand out immediately.
 
 1. The folder name in which it stores the extracted files is _deterministic_. Furthermore, the folder's contents aren't destroyed. This means that we can call the process endpoint multiple times with the same zipfile and the contents of each zipfile will simply be dumped there without fail.
 
-2. It waits for a full second before copying the zip file over. This is a classic redflag for CTF challenges that tell you with almost 100% certainty that a race condition is involved _somewhere_
+2. It waits for a full second before copying the zip file over. This is a classic red flag for CTF challenges that tell you with almost 100% certainty that a race condition is involved _somewhere_.
 
-3. It uses the unzip command. The unzip command overwrites files indiscriminately, and will remove path segments like '..' and prefixed '/'. This is secure given that you unzip the file in an _empty_ folder. Therefore, the checks for path traversal actually don't do anything
+3. It uses the unzip command. The unzip command overwrites files indiscriminately, and will remove path segments like `'..'` and prefixed `'/'`. This is secure given that you unzip the file in an _empty_ folder. Therefore, the checks for path traversal actually don't do anything
 
-4. Zips can contain symlinks. This is a very common quirk of zip files/archive formats that many ctf challenges use (and can also appear pretty commonly in real life!)
+4. Zips can contain symlinks. This is a very common quirk of zip files/archive formats that many CTF challenges use (and can also appear pretty commonly in real life!)
 
 5. P7zip-full is installed for some reason but never used (spoiler: this is irrevelant to the challenge but I spent quite some time down this rabbit hole :angry:)
 
 
 Race condition vulnerabilities where some variable is checked against some condition, then used after are called [TOCTOU(Time Of Check, Time Of Use)](https://natalieagus.github.io/50005/labs/02-toctou) vulnerabilities.  
 However, I personally never found an appeal for this acronym.  
-Liveoverflow has a pretty nice video explaining this class of vulnerabilities on his channel [here](https://www.youtube.com/watch?v=5g137gsB9Wk)  
-Or maybe I'm just a liveoverflow simp...  
+LiveOverflow has a pretty nice video explaining this class of vulnerabilities on his channel [here](https://www.youtube.com/watch?v=5g137gsB9Wk)  
+Or maybe I'm just a LiveOverflow simp...  
 
 
 Anyhow, the first thing that came to my mind was that we could swap out the zipfiles before the file was copied over, but after the check was done.  
 
 This is made possible by the fact that the upload function _rewrites_ old files, plus the fact that there is a whole second after the check but before the copy.  
 
-Therefore I wrote this script
+Therefore I wrote this script:
+
 ```python title=overwrite_import.py
 import requests
 
@@ -1391,36 +1394,36 @@ thread2.join()
 print("Both requests completed, uploaded symlink")
 ```
 
-This will upload 'A', call /process, and 0.2s later upload another file of my choosing with name 'A'.  
+This will upload `'A'`, call `/process`, and 0.2s later upload another file of my choosing with name `'A'`.  
 
 This allows us to bypass the huge chunk of checks.  
 
-Hurrah! We can now solve the challenge...right? Simply upload a zip containing something like test.jpg, then swap it out with a zip that contains a symlink to /flag.txt.  
+Hurrah! We can now solve the challenge...right? Simply upload a zip containing something like test.jpg, then swap it out with a zip that contains a symlink to `/flag.txt`.  
 
-This is where we hit our first roadblock. We cannot simply read /flag.txt as it is owned by root. Furthermore, the unzip utility strips all '..' and ignore's prefixed '/'s. Therefore, we are only limited extracting only to our current directory (and subdirectories).  
+This is where we hit our first roadblock. We cannot simply read `/flag.txt` as it is owned by root. Furthermore, the unzip utility strips all `'..'` and ignores prefixed `'/'`s. Therefore, we are only limited extracting only to our current directory (and subdirectories).  
 
 At this juncture, my initial instinct was that p7zip-full had to be installed for _some_ reason. Perhaps unzip had a lesser known feature that called p7zip whenever it saw a 7z archive?  
 I then spent the next 30min crawling through the unzip documentation and experimenting around with it in hopes of finding such behavior with no luck.  
 I'm 99% sure the author installed p7zip-full just to toy with our feelings :shrug:  
 
 After some mulling around spinning in my chair, I realised that by swapping in the zip files, we could upload folders that were symlinks to other folders!  
-That is, we could craft a zip file, 'A', with the following structure  
-- helloworld -> /app  
+That is, we could craft a zip file, `'A'`, with the following structure  
+- `helloworld` -> `/app`  
 
 Then, we can extract this zip which leaves us with  
-/tmp/uploads/A_extracted/helloworld -> /app  
+`/tmp/uploads/A_extracted/helloworld` -> `/app`  
 
-Afterwhich, we craft another zipfile, 'A' with the following structure  
-- hellworld/dangerous_looking_payload.js  
+After which, we craft another zipfile, `'A'` with the following structure  
+- ```hellworld/dangerous_looking_payload.js```
 
-Which when unzipped, will cause unzip to extract dangerous_looking_payload.js to /tmp/uploads/A_extracted/helloworld, which leads to dangerous_looking_payload.js being extracted to app.js  
+Which when unzipped, will cause unzip to extract `dangerous_looking_payload.js` to `/tmp/uploads/A_extracted/helloworld`, which leads to `dangerous_looking_payload.js` being extracted to `app.js`.
 
 With this, we have an arbitrary write on the whole filesystem and the challenge should be trivial after this.  
 
 Here's a helpful infographic I drew on mspaint :laugh:  
 ![Exploit.jpg](/assets/images/osu-ctf-25/osuctf2025-chart-viewer-image.png)
 
-Now what file can we overwrite to get RCE? Conveniently, there seems to be another function in index.js, /render
+Now what file can we overwrite to get RCE? Conveniently, there seems to be another function in `index.js`, `/render`
 ```javascript file=index.js
 app.post('/render', (req, res) => {
   const sharp = require('sharp');
@@ -1485,11 +1488,11 @@ function rgbToHex(r, g, b) {
 }
 ```
 
-It is interesting that the sharp library is only imported upon the first call of /render.  
+It is interesting that the sharp library is only imported upon the first call of `/render`.  
 Some digging into the [sharp](https://sharp.pixelplumbing.com/) library tells me that it is used for "High performance Node.js image processing"  
 
 That seemed like a promising candidate to overwrite files to, as we could overwrite files that would only be "imported"/stored in memory after we called /render, which is non essential to our exploit thus far.  
-Therefore, I did an npm install and went digging around the libraries files.  
+Therefore, I did an `npm install` and went digging around the libraries files.  
 
 I quickly found resize.js, which stored ```function resize (widthOrOptions, height, options) {```, which was called by ```.resize(16, 1, { fit: 'fill' });```.  
 
@@ -1526,20 +1529,26 @@ with zipfile.ZipFile('zips/A', 'w') as zf:
 print("Created A.zip with entry /app/test.txt containing 'pogchamp'")
 ```
 
-First, we had 
+First, we have
+```
 'A'
 - test.jpg
+```
 
-Next, we had
+Next, we have
+```
 'A'
 - faketmp -> /app/node_modules/sharp/lib
+```
 
-Afterwhich, we had
+After which, we have
+```
 'A'
 - faketmp/resize.js
+```
 
-Using our previous overwrite_import.py script, we could then upload each file one by one and overwrite the resize.js library.  
-Next, we simply call /render and win!  
+Using our previous `overwrite_import.py` script, we could then upload each file one by one and overwrite the `resize.js` library.  
+Next, we simply call `/render` and win!  
 
 Testing this on local seemed to work well  
 ![Local Flagged!](/assets/images/osu-ctf-25/osuctf2025-chart-viewer-flag.png)  
@@ -1549,6 +1558,10 @@ And on remote, we got
 ```osu{I_w4nt_mus1c_n3xt_t1m3}```
 
 
-## Summary
+## Thoughts
 
-This was a decently interesting challenge(that can probably serve as a good introduction) about race conds and symlinks. 7/10
+This was a decently interesting challenge (that can probably serve as a good introduction) about race conds and symlinks. 7/10
+
+# summary
+
+Overall, we had a great time with this year's osu ctf! The challenges were fun and well put together - much love to the organising team :) We'll definitely try again next year :P
