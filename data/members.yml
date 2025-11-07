@@ -20,11 +20,43 @@
     - misc
   site:
     - https://mkofdwu.github.io
+  image: /assets/members/mkofdwu.png
 
 - name: halogen
   categories:
     - web
     - crypto
+  site:
+    - https://www.linkedin.com/in/yuan-xi-yap-5b3205242/
+  image: /assets/members/halogen.png
+
+- name: warri
+  categories:
+    - crypto
+    - rev
+  site: 
+    - https://github.com/Warriii
+  image: /assets/members/warri.png
+
+- name: why
+  categories:
+    - web
+    - pwn
+  image: /assets/members/why.png
+
+- name: cewau
+  categories:
+    - rev
+    - pwn
+  image: /assets/members/cewau.png
+
+- name: javalim
+  categories:
+    - crypto
+    - misc
+  site:
+    - https://blog.javalim.com/
+  image: /assets/members/javalim.png
 
 - name: wrenches
   categories:
